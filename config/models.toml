@@ -1,0 +1,358 @@
+# ModelStag Configuration
+# Model definitions for photoshop-like image segmentation
+
+[process]
+mode = "multi"  # "multi" (default) or "single"
+
+# ============ BACKGROUND REMOVAL (rembg) ============
+
+# U2-Net: Fast general-purpose background removal
+# Authors: Xuebin Qin, Zichen Zhang, Chenyang Huang, Masood Dehghan, Osmar Zaiane, Martin Jagersand
+# Institution: University of Alberta
+# Paper: "U2-Net: Going Deeper with Nested U-Structure for Salient Object Detection" (2020)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2005.09007
+# Code: https://github.com/xuebinqin/U-2-Net
+[models.u2net]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "u2net"
+output_formats = ["mask", "polygon", "bbox"]
+
+# BiRefNet: Bilateral Reference Network - Best quality, state of the art (1024x1024, slower)
+# Authors: Zhengyi Lu, Zongze Wu, Zheng Zhang
+# Institution: Nankai University, ByteDance
+# Paper: "Bilateral Reference for High-Resolution Dichotomous Image Segmentation" (2024)
+# License: MIT
+# Paper URL: https://arxiv.org/abs/2401.03407
+# Code: https://github.com/ZhengPeng7/BiRefNet
+# Hugging Face: https://huggingface.co/ZhengPeng7/BiRefNet
+[models.birefnet_general]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "birefnet-general"
+output_formats = ["mask", "polygon", "bbox"]
+
+# BiRefNet Portrait: Optimized for portraits and people
+# (Same attribution as birefnet_general)
+# Paper URL: https://arxiv.org/abs/2401.03407
+# Code: https://github.com/ZhengPeng7/BiRefNet
+[models.birefnet_portrait]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "birefnet-portrait"
+output_formats = ["mask", "polygon", "bbox"]
+
+# BiRefNet HRSOD: High-resolution salient object detection
+# (Same attribution as birefnet_general)
+# Paper URL: https://arxiv.org/abs/2401.03407
+# Code: https://github.com/ZhengPeng7/BiRefNet
+[models.birefnet_hrsod]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "birefnet-hrsod"
+output_formats = ["mask", "polygon", "bbox"]
+
+# BiRefNet DIS: Fine detail segmentation (hair, fur, edges)
+# (Same attribution as birefnet_general)
+# Paper URL: https://arxiv.org/abs/2401.03407
+# Code: https://github.com/ZhengPeng7/BiRefNet
+[models.birefnet_dis]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "birefnet-dis"
+output_formats = ["mask", "polygon", "bbox"]
+
+# U2-Net Human: Human body segmentation variant
+# (Same attribution as u2net)
+# Paper URL: https://arxiv.org/abs/2005.09007
+# Code: https://github.com/xuebinqin/U-2-Net
+[models.u2net_human]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "u2net_human_seg"
+output_formats = ["mask", "polygon", "bbox"]
+
+# IS-Net: General object segmentation
+# Authors: Xuebin Qin, Hang Dai, Xiaobin Hu, Deng-Ping Fan, Ling Shao, Luc Van Gool
+# Institution: University of Alberta, ETH Zurich, IIAI
+# Paper: "Highly Accurate Dichotomous Image Segmentation" (ECCV 2022)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2203.03041
+# Code: https://github.com/xuebinqin/DIS
+[models.isnet_general]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "isnet-general-use"
+output_formats = ["mask", "polygon", "bbox"]
+
+# IS-Net Anime: Anime and illustration segmentation
+# (Same attribution as isnet_general)
+# Paper URL: https://arxiv.org/abs/2203.03041
+# Code: https://github.com/xuebinqin/DIS
+[models.isnet_anime]
+type = "rembg"
+enabled = true
+startup = "lazy"
+rembg_model = "isnet-anime"
+output_formats = ["mask", "polygon", "bbox"]
+
+# ============ SEGMENT ANYTHING (SAM) ============
+
+# SAM: Segment Anything Model by Meta AI - Base variant (fastest, 375MB)
+# Authors: Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, et al.
+# Institution: Meta AI Research (FAIR)
+# Paper: "Segment Anything" (2023)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2304.02643
+# Project: https://segment-anything.com/
+# Code: https://github.com/facebookresearch/segment-anything
+# Weights: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+[models.sam]
+type = "sam"
+enabled = true
+startup = "lazy"
+sam_model = "vit_b"
+output_formats = ["mask", "polygon", "bbox"]
+
+# SAM Large: Better quality (1.2GB)
+# (Same attribution as sam)
+# Weights: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
+[models.sam_large]
+type = "sam"
+enabled = true
+startup = "lazy"
+sam_model = "vit_l"
+output_formats = ["mask", "polygon", "bbox"]
+
+# SAM Huge: Best quality (2.4GB)
+# (Same attribution as sam)
+# Weights: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+[models.sam_huge]
+type = "sam"
+enabled = true
+startup = "lazy"
+sam_model = "vit_h"
+output_formats = ["mask", "polygon", "bbox"]
+
+# ============ DEPTH ESTIMATION ============
+
+# Depth Anything: Monocular depth estimation - Small variant (fastest)
+# Authors: Lihe Yang, Bingyi Kang, Zilong Huang, Xiaogang Xu, Jiashi Feng, Hengshuang Zhao
+# Institution: The University of Hong Kong, ByteDance
+# Paper: "Depth Anything: Unleashing the Power of Large-Scale Unlabeled Data" (2024)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2401.10891
+# Project: https://depth-anything.github.io/
+# Code: https://github.com/LiheYoung/Depth-Anything
+# Hugging Face: https://huggingface.co/LiheYoung/depth-anything-small-hf
+[models.depth_small]
+type = "depth"
+enabled = true
+startup = "lazy"
+depth_model = "small"
+output_formats = ["mask"]
+
+# Depth Anything Base
+# (Same attribution as depth_small)
+# Hugging Face: https://huggingface.co/LiheYoung/depth-anything-base-hf
+[models.depth_base]
+type = "depth"
+enabled = true
+startup = "lazy"
+depth_model = "base"
+output_formats = ["mask"]
+
+# Depth Anything Large: Best quality
+# (Same attribution as depth_small)
+# Hugging Face: https://huggingface.co/LiheYoung/depth-anything-large-hf
+[models.depth_large]
+type = "depth"
+enabled = true
+startup = "lazy"
+depth_model = "large"
+output_formats = ["mask"]
+
+# ============ OBJECT DETECTION ============
+
+# YOLO-World: Open-vocabulary object detection - Small variant (fastest)
+# Authors: Tianheng Cheng, Lin Song, Yixiao Ge, Wenyu Liu, Xinggang Wang, Ying Shan
+# Institution: Tencent AI Lab, Huazhong University of Science and Technology
+# Paper: "YOLO-World: Real-Time Open-Vocabulary Object Detection" (2024)
+# License: AGPL-3.0 (Ultralytics) - requires source disclosure for commercial use
+# Paper URL: https://arxiv.org/abs/2401.17270
+# Code: https://github.com/AILab-CVC/YOLO-World
+# Ultralytics: https://github.com/ultralytics/ultralytics
+# Docs: https://docs.ultralytics.com/models/yolo-world/
+# Weights: yolov8s-worldv2.pt (auto-downloaded by ultralytics)
+[models.detect_small]
+type = "detect"
+enabled = true
+startup = "lazy"
+detect_model = "small"
+output_formats = ["mask", "bbox"]
+
+# YOLO-World Medium
+# (Same attribution as detect_small)
+# Weights: yolov8m-worldv2.pt
+[models.detect_medium]
+type = "detect"
+enabled = true
+startup = "lazy"
+detect_model = "medium"
+output_formats = ["mask", "bbox"]
+
+# YOLO-World Large
+# (Same attribution as detect_small)
+# Weights: yolov8l-worldv2.pt
+[models.detect_large]
+type = "detect"
+enabled = true
+startup = "lazy"
+detect_model = "large"
+output_formats = ["mask", "bbox"]
+
+# ============ IMAGE CAPTIONING ============
+
+# Florence-2: Vision foundation model - Base variant
+# Authors: Bin Xiao, Haiping Wu, Weijian Xu, Xiyang Dai, Houdong Hu, Yumao Lu, Michael Zeng, Ce Liu, Lu Yuan
+# Institution: Microsoft
+# Paper: "Florence-2: Advancing a Unified Representation for a Variety of Vision Tasks" (2023)
+# License: MIT
+# Paper URL: https://arxiv.org/abs/2311.06242
+# Code: https://github.com/microsoft/Florence-2
+# Hugging Face: https://huggingface.co/microsoft/Florence-2-base
+[models.caption_base]
+type = "caption"
+enabled = true
+startup = "lazy"
+caption_model = "base"
+output_formats = ["mask"]
+
+# Florence-2 Large: Better quality
+# (Same attribution as caption_base)
+# Hugging Face: https://huggingface.co/microsoft/Florence-2-large
+[models.caption_large]
+type = "caption"
+enabled = true
+startup = "lazy"
+caption_model = "large"
+output_formats = ["mask"]
+
+# ============ POSE ESTIMATION ============
+
+# MediaPipe Pose: Real-time single-person pose (33 landmarks)
+# Authors: Google AI Edge Team
+# Institution: Google
+# Paper: "BlazePose: On-device Real-time Body Pose tracking" (2020)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2006.10204
+# Docs: https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker
+# Code: https://github.com/google-ai-edge/mediapipe
+[models.pose_mediapipe]
+type = "pose"
+enabled = true
+startup = "lazy"
+pose_model = "mediapipe"
+output_formats = ["mask", "keypoints"]
+
+# RTMO: Real-Time Multi-person One-stage pose estimation - Small variant (fastest)
+# Authors: OpenMMLab (Jiang et al.)
+# Institution: Shanghai AI Laboratory, SenseTime
+# Paper: "RTMO: Towards High-Performance One-Stage Real-Time Multi-Person Pose Estimation" (2023)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2312.07526
+# Code: https://github.com/open-mmlab/mmpose/tree/main/projects/rtmo
+# Docs: https://mmpose.readthedocs.io/
+# Note: Requires mmpose, mmdet, mmcv installation
+[models.pose_rtmo_s]
+type = "pose"
+enabled = true
+startup = "lazy"
+pose_model = "rtmo_s"
+output_formats = ["mask", "keypoints"]
+
+# RTMO Medium: Better accuracy, still real-time
+# (Same attribution as pose_rtmo_s)
+# Paper URL: https://arxiv.org/abs/2312.07526
+[models.pose_rtmo_m]
+type = "pose"
+enabled = true
+startup = "lazy"
+pose_model = "rtmo_m"
+output_formats = ["mask", "keypoints"]
+
+# RTMO Large: Best accuracy (74.8% AP COCO, 141 FPS)
+# (Same attribution as pose_rtmo_s)
+# Paper URL: https://arxiv.org/abs/2312.07526
+[models.pose_rtmo_l]
+type = "pose"
+enabled = true
+startup = "lazy"
+pose_model = "rtmo_l"
+output_formats = ["mask", "keypoints"]
+
+# RTMW: Real-Time Multi-person Wholebody pose (body + hands + face, 133 keypoints)
+# Authors: OpenMMLab
+# Institution: Shanghai AI Laboratory
+# Paper: "RTMW: Real-Time Multi-Person 2D and 3D Whole-body Pose Estimation" (2024)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2407.08634
+# Code: https://github.com/open-mmlab/mmpose/tree/main/projects/rtmpose
+# Note: First open-source model to exceed 70% mAP on COCO-Wholebody
+[models.pose_rtmw_m]
+type = "pose"
+enabled = true
+startup = "lazy"
+pose_model = "rtmw_m"
+output_formats = ["mask", "keypoints"]
+
+# RTMW Large: Better quality wholebody
+# (Same attribution as pose_rtmw_m)
+# Paper URL: https://arxiv.org/abs/2407.08634
+[models.pose_rtmw_l]
+type = "pose"
+enabled = true
+startup = "lazy"
+pose_model = "rtmw_l"
+output_formats = ["mask", "keypoints"]
+
+# ============ HAND TRACKING ============
+
+# MediaPipe Hands: Real-time 21-landmark hand tracking
+# Authors: Google AI Edge Team (Zhang et al.)
+# Institution: Google
+# Paper: "MediaPipe Hands: On-device Real-time Hand Tracking" (2020)
+# License: Apache 2.0
+# Paper URL: https://arxiv.org/abs/2006.10214
+# Docs: https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker
+# Code: https://github.com/google-ai-edge/mediapipe
+[models.hand_mediapipe]
+type = "hand"
+enabled = true
+startup = "lazy"
+hand_model = "mediapipe"
+output_formats = ["mask", "keypoints"]
+
+# HaMeR: Hand Mesh Recovery - 3D hand mesh reconstruction
+# Authors: Georgios Pavlakos, Dandan Shan, Ilija Radosavovic, Angjoo Kanazawa, David Fouhey, Jitendra Malik
+# Institution: UC Berkeley, University of Michigan
+# Paper: "Reconstructing Hands in 3D with Transformers" (CVPR 2024)
+# License: MIT
+# Paper URL: https://arxiv.org/abs/2312.05251
+# Project: https://geopavlakos.github.io/hamer/
+# Code: https://github.com/geopavlakos/hamer
+# Note: Returns full 3D hand mesh with MANO parameters
+[models.hand_hamer]
+type = "hand"
+enabled = true
+startup = "lazy"
+hand_model = "hamer"
+output_formats = ["mask", "keypoints", "mesh"]

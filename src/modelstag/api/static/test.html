@@ -1,0 +1,3009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModelStag Test</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .container.controls-container {
+            max-width: 1200px;
+        }
+        h1 { color: #00d9ff; margin-bottom: 20px; }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-group label {
+            color: #00d9ff;
+            font-size: 13px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        select {
+            padding: 8px 12px;
+            border: 2px solid #0f3460;
+            background: #0f3460;
+            color: #eee;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 180px;
+        }
+        select:hover { background: #1a4a7a; }
+        select:focus { border-color: #00d9ff; outline: none; }
+        .image-picker {
+            position: relative;
+        }
+        .camera-btn {
+            padding: 8px 12px;
+            border: 2px solid #0f3460;
+            background: #0f3460;
+            color: #eee;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .camera-btn:hover { background: #1a4a7a; }
+        .camera-btn.active {
+            border-color: #00ff88;
+            background: #00ff8830;
+        }
+        .camera-btn.live {
+            border-color: #ff6b6b;
+            background: #ff6b6b30;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .camera-modal.open {
+            display: flex;
+        }
+        .camera-container {
+            position: relative;
+            max-width: 90vw;
+            max-height: 70vh;
+        }
+        .camera-video {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 10px;
+            background: #000;
+        }
+        .camera-canvas {
+            display: none;
+        }
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .camera-capture-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .camera-capture-btn:hover {
+            transform: scale(1.1);
+        }
+        .camera-capture-btn::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            background: #ff4444;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .camera-capture-btn:hover::after {
+            background: #ff6666;
+        }
+        .camera-close-btn {
+            padding: 10px 25px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .camera-close-btn:hover {
+            background: #444;
+        }
+        .camera-switch-btn {
+            padding: 10px 15px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .camera-switch-btn:hover {
+            background: #444;
+        }
+        .live-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+        .live-toggle input {
+            width: 18px;
+            height: 18px;
+            accent-color: #ff6b6b;
+        }
+        .live-indicator {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #ff6b6b;
+            margin-left: 10px;
+        }
+        .live-indicator.active {
+            display: flex;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+        .image-picker-btn {
+            padding: 8px 12px;
+            border: 2px solid #0f3460;
+            background: #0f3460;
+            color: #eee;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 180px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .image-picker-btn:hover { background: #1a4a7a; }
+        .image-picker-btn.active { border-color: #00d9ff; }
+        .image-picker-btn img {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+        .image-picker-btn .arrow {
+            margin-left: auto;
+        }
+        .image-grid {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 100;
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            min-width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .image-grid.open {
+            display: grid;
+        }
+        .image-grid-item {
+            cursor: pointer;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.15s;
+        }
+        .image-grid-item:hover {
+            border-color: #00d9ff;
+            transform: scale(1.05);
+        }
+        .image-grid-item.selected {
+            border-color: #00d9ff;
+        }
+        .image-grid-item img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            display: block;
+        }
+        .status-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        .status-badge.running { background: #00ff8820; color: #00ff88; }
+        .status-badge.starting { background: #ffd70020; color: #ffd700; }
+        .status-badge.stopped { background: #88888820; color: #888; }
+        .run-btn {
+            padding: 10px 30px;
+            font-size: 16px;
+            background: #00d9ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .run-btn:hover { background: #00b8d9; }
+        .run-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .sam-modes {
+            display: flex;
+            gap: 10px;
+            margin-left: 10px;
+        }
+        .sam-modes label, .depth-controls label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .sam-modes input[type="radio"], .depth-controls input[type="radio"] {
+            accent-color: #00d9ff;
+        }
+        .depth-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .range-slider {
+            position: relative;
+            width: 150px;
+            height: 24px;
+            margin: 0 10px;
+            user-select: none;
+        }
+        .range-track {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 6px;
+            background: #0f3460;
+            border-radius: 3px;
+        }
+        .range-selected {
+            position: absolute;
+            height: 100%;
+            background: #00d9ff;
+            border-radius: 3px;
+        }
+        .range-handle {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border: 2px solid #00d9ff;
+            border-radius: 50%;
+            cursor: grab;
+            z-index: 2;
+        }
+        .range-handle:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        .range-handle:active {
+            cursor: grabbing;
+        }
+        .range-handle.range-min {
+            border-color: #ff6b6b;
+        }
+        .depth-range-label {
+            font-size: 12px;
+            color: #888;
+            margin-left: 10px;
+        }
+        .depth-value-display {
+            font-size: 11px;
+            color: #00d9ff;
+            margin-left: 5px;
+        }
+        .depth-click-hint {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            padding: 5px;
+        }
+        .preview {
+            display: none;
+        }
+        .placeholder-content {
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f3460;
+            color: #666;
+        }
+        .placeholder-text {
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+        .results {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .result-card {
+            background: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .result-card h3 {
+            margin: 0;
+            padding: 12px 15px;
+            background: #0f3460;
+            color: #00d9ff;
+            font-size: 14px;
+        }
+        .result-card img, .result-card canvas {
+            width: 100%;
+            display: block;
+        }
+        .result-info {
+            padding: 10px 15px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        .checkerboard {
+            background-image:
+                linear-gradient(45deg, #808080 25%, transparent 25%),
+                linear-gradient(-45deg, #808080 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #808080 75%),
+                linear-gradient(-45deg, transparent 75%, #808080 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #a0a0a0;
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #333;
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .refresh-btn {
+            background: none;
+            border: 1px solid #444;
+            color: #888;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .refresh-btn:hover { border-color: #00d9ff; color: #00d9ff; }
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .mask-info {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        .canvas-container {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container controls-container">
+        <h1>ModelStag Test</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Model</label>
+                <select id="modelSelect">
+                    <option value="">Loading...</option>
+                </select>
+                <button class="refresh-btn" onclick="loadModels()">↻</button>
+            </div>
+            <div class="control-group">
+                <label>Image</label>
+                <div class="image-picker">
+                    <button class="image-picker-btn" id="imagePickerBtn">
+                        <span id="imagePickerText">Select image...</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="image-grid" id="imageGrid"></div>
+                </div>
+                <button class="camera-btn" id="cameraBtn" title="Use camera">
+                    <span>📷</span>
+                    <span>Camera</span>
+                </button>
+                <span class="live-indicator" id="liveIndicator">
+                    <span class="live-dot"></span>
+                    <span>LIVE</span>
+                </span>
+            </div>
+            <div class="control-group" id="samModesGroup" style="display: none;">
+                <div class="sam-modes">
+                    <label><input type="radio" name="samMode" value="filled" checked> Filled</label>
+                    <label><input type="radio" name="samMode" value="outlines"> Outlines</label>
+                    <label><input type="radio" name="samMode" value="cursor"> Under Cursor</label>
+                </div>
+            </div>
+            <div class="control-group" id="depthControlsGroup" style="display: none;">
+                <div class="depth-controls">
+                    <label><input type="radio" name="depthView" value="depth" checked> Depth</label>
+                    <label><input type="radio" name="depthView" value="original"> Original</label>
+                    <label><input type="radio" name="depthView" value="selection"> Selection</label>
+                    <label><input type="radio" name="depthView" value="surface"> Surface</label>
+                    <span id="surfaceToleranceGroup" style="display: none;">
+                        <span class="depth-range-label">Depth:</span>
+                        <input type="range" id="surfaceTolerance" min="1" max="50" value="15" style="width: 60px; vertical-align: middle;">
+                        <span id="surfaceToleranceDisplay" class="depth-value-display">15</span>
+                        <label style="margin-left: 10px; font-size: 11px; color: #aaa;">
+                            <input type="checkbox" id="polygonConstraint" style="vertical-align: middle;"> Inside polygon
+                        </label>
+                        <label style="margin-left: 5px; font-size: 11px; color: #aaa;">
+                            <input type="checkbox" id="normalExclusion" style="vertical-align: middle;"> Normals
+                        </label>
+                        <span id="normalToleranceGroup" style="display: none;">
+                            <input type="range" id="normalTolerance" min="5" max="90" value="30" style="width: 50px; vertical-align: middle;">
+                            <span id="normalToleranceDisplay" class="depth-value-display">30°</span>
+                        </span>
+                        <select id="depthTransform" style="margin-left: 10px; background:#0f3460; color:#eee; border:1px solid #1a4a7a; padding:2px; font-size:11px;">
+                            <option value="linear">Linear (plane)</option>
+                            <option value="quadratic">Quadratic (curved)</option>
+                            <option value="bilinear">Bilinear (exact 4pt)</option>
+                            <option value="inverse">Inverse (1/z)</option>
+                            <option value="log">Log (ln z)</option>
+                        </select>
+                    </span>
+                    <div class="range-slider" id="depthRangeSlider" style="display: none;">
+                        <div class="range-track">
+                            <div class="range-selected" id="rangeSelected"></div>
+                        </div>
+                        <div class="range-handle range-min" id="rangeMin"></div>
+                        <div class="range-handle range-max" id="rangeMax"></div>
+                    </div>
+                    <span id="depthRangeDisplay" class="depth-value-display" style="display: none;">0-255</span>
+                </div>
+            </div>
+            <button class="run-btn" id="runBtn" disabled>Run Inference</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="preview" id="preview"></div>
+        <div class="results" id="results"></div>
+    </div>
+
+
+    <script>
+        let selectedModel = null;
+        let selectedImage = null;
+        let models = {};
+        let pollInterval = null;
+        let samMasksData = null;  // Store SAM masks for interactive modes
+        let samMaskImages = [];   // Pre-decoded mask images
+        let depthData = null;     // Store depth map data for interactive selection
+        let depthOriginalImage = null;  // Store original image for depth toggle
+        let depthOriginalData = null;   // Store original image pixel data
+        let depthRangeMin = 0;    // Current min range value
+        let depthRangeMax = 255;  // Current max range value
+
+        // Surface selection state
+        let surfacePoints = [];   // Array of {x, y, z} reference points (up to 4)
+        let surfacePlane = null;  // { dzdx, dzdy, samples[] } fitted from all points
+        let testPointsIn = [];    // Shift+click: points that SHOULD be included
+        let testPointsOut = [];   // Shift+right-click: points that should be EXCLUDED
+
+        // Cookie helpers
+        function setCookie(name, value) {
+            document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=86400`;
+        }
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
+        // HSL to RGB helper
+        function hslToRgb(hue) {
+            const s = 0.7, l = 0.5;
+            const c = (1 - Math.abs(2 * l - 1)) * s;
+            const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+            const m = l - c / 2;
+            let r, g, b;
+            if (hue < 60) { r = c; g = x; b = 0; }
+            else if (hue < 120) { r = x; g = c; b = 0; }
+            else if (hue < 180) { r = 0; g = c; b = x; }
+            else if (hue < 240) { r = 0; g = x; b = c; }
+            else if (hue < 300) { r = x; g = 0; b = c; }
+            else { r = c; g = 0; b = x; }
+            return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+        }
+
+        async function loadModels() {
+            const select = document.getElementById('modelSelect');
+            try {
+                const resp = await fetch('/models');
+                const data = await resp.json();
+                models = {};
+                data.models.forEach(m => models[m.name] = m);
+                renderModels();
+            } catch (e) {
+                select.innerHTML = '<option value="">Failed to load</option>';
+            }
+        }
+
+        function renderModels() {
+            const select = document.getElementById('modelSelect');
+            select.innerHTML = '<option value="">Select model...</option>';
+
+            const anyStarting = Object.values(models).some(m => m.status === 'starting');
+            if (anyStarting && !pollInterval) {
+                pollInterval = setInterval(loadModels, 2000);
+            } else if (!anyStarting && pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+
+            Object.values(models).forEach(model => {
+                const opt = document.createElement('option');
+                opt.value = model.name;
+                opt.textContent = `${model.name} [${model.status}]`;
+                if (model.name === selectedModel) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        async function selectModel(name) {
+            selectedModel = name;
+            setCookie('modelstag_model', name);
+
+            // Show/hide model-specific controls
+            const isSam = name && name.startsWith('sam');
+            const isDepth = name && name.startsWith('depth');
+            document.getElementById('samModesGroup').style.display = isSam ? 'flex' : 'none';
+            document.getElementById('depthControlsGroup').style.display = isDepth ? 'flex' : 'none';
+
+            updateRunButton();
+        }
+
+        function selectImage(name) {
+            selectedImage = name;
+            setCookie('modelstag_image', name);
+            updateRunButton();
+            updateImagePickerBtn();
+            renderImageGrid();
+
+            // Show in results layout immediately
+            updateResultsPreview();
+        }
+
+        function updateResultsPreview() {
+            const resultsDiv = document.getElementById('results');
+            const preview = document.getElementById('preview');
+            preview.innerHTML = '';  // Clear old preview
+
+            if (selectedImage) {
+                resultsDiv.innerHTML = `
+                    <div class="result-card">
+                        <h3>Original</h3>
+                        <img src="/images/${selectedImage}" alt="Original">
+                    </div>
+                    <div class="result-card placeholder">
+                        <h3>Result</h3>
+                        <div class="placeholder-content">
+                            <div class="placeholder-text">Select a model and click Run Inference</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = '';
+            }
+        }
+
+        function updateRunButton() {
+            const btn = document.getElementById('runBtn');
+            btn.disabled = !selectedModel || !selectedImage;
+        }
+
+        function getSamMode() {
+            return document.querySelector('input[name="samMode"]:checked')?.value || 'filled';
+        }
+
+        async function runInference() {
+            if (!selectedModel || !selectedImage) return;
+
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+            const resultsDiv = document.getElementById('results');
+
+            try {
+                const imageResp = await fetch(`/images/${selectedImage}`);
+                const imageBlob = await imageResp.blob();
+
+                const formData = new FormData();
+                formData.append('image', imageBlob, selectedImage);
+
+                const startTime = Date.now();
+                const isSam = selectedModel && selectedModel.startsWith('sam');
+                const isDepth = selectedModel && selectedModel.startsWith('depth');
+                const isCaption = selectedModel && selectedModel.startsWith('caption');
+                const isDetect = selectedModel && selectedModel.startsWith('detect');
+
+                let endpoint;
+                if (isSam) {
+                    endpoint = `/inference/${selectedModel}/all-masks`;
+                } else if (isCaption) {
+                    endpoint = `/inference/${selectedModel}/caption`;
+                } else if (isDetect) {
+                    endpoint = `/inference/${selectedModel}/detect`;
+                } else {
+                    endpoint = `/inference/${selectedModel}`;
+                }
+
+                const resp = await fetch(endpoint, { method: 'POST', body: formData });
+                const totalTime = Date.now() - startTime;
+                const data = await resp.json();
+
+                if (isSam) {
+                    samMasksData = data;
+                    await renderSamResult(data, totalTime);
+                } else if (isDepth) {
+                    await renderDepthResult(data, totalTime);
+                } else if (isCaption) {
+                    renderCaptionResult(data, totalTime);
+                } else if (isDetect) {
+                    renderDetectResult(data, totalTime);
+                } else {
+                    renderRegularResult(data, totalTime);
+                }
+            } catch (e) {
+                resultsDiv.innerHTML = `<div class="error-msg">Error: ${e.message}</div>`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Run Inference';
+            updateRunButton();
+        }
+
+        async function renderSamResult(data, totalTime) {
+            const resultsDiv = document.getElementById('results');
+            const mode = getSamMode();
+
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>Original</h3>
+                    <img src="/images/${selectedImage}" alt="Original">
+                </div>
+                <div class="result-card">
+                    <h3>SAM: ${data.masks_count} objects</h3>
+                    <div class="canvas-container">
+                        <canvas id="samCanvas"></canvas>
+                        <div class="mask-info" id="maskInfo"></div>
+                    </div>
+                    <div class="result-info">
+                        Processing: ${(data.processing_time_ms/1000).toFixed(1)}s |
+                        Total: ${(totalTime/1000).toFixed(1)}s
+                    </div>
+                </div>
+            `;
+
+            const canvas = document.getElementById('samCanvas');
+            const ctx = canvas.getContext('2d');
+            const origImg = new Image();
+
+            origImg.onload = async () => {
+                canvas.width = origImg.width;
+                canvas.height = origImg.height;
+
+                // Generate colors for all masks
+                const colors = data.masks.map((_, i) => hslToRgb((i * 137.5) % 360));
+
+                // Pre-decode all mask images
+                samMaskImages = [];
+                for (let i = 0; i < data.masks.length; i++) {
+                    const maskImg = new Image();
+                    await new Promise(resolve => {
+                        maskImg.onload = resolve;
+                        maskImg.src = `data:image/png;base64,${data.masks[i].mask}`;
+                    });
+
+                    // Get pixel data
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = canvas.width;
+                    tempCanvas.height = canvas.height;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height);
+                    const pixels = tempCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+                    samMaskImages.push({ pixels, color: colors[i], data: data.masks[i] });
+                }
+
+                // Render based on mode
+                if (mode === 'filled') {
+                    renderFilledMode(canvas, ctx, origImg);
+                } else if (mode === 'outlines') {
+                    renderOutlinesMode(canvas, ctx, origImg);
+                } else {
+                    renderCursorMode(canvas, ctx, origImg);
+                }
+            };
+            origImg.src = `/images/${selectedImage}`;
+        }
+
+        function renderFilledMode(canvas, ctx, origImg) {
+            ctx.drawImage(origImg, 0, 0);
+
+            const overlayData = ctx.createImageData(canvas.width, canvas.height);
+            const overlay = overlayData.data;
+
+            for (const mask of samMaskImages) {
+                const [r, g, b] = mask.color;
+                for (let j = 0; j < mask.pixels.length; j += 4) {
+                    if (mask.pixels[j] > 128) {
+                        const alpha = 0.4;
+                        overlay[j] = overlay[j] * (1 - alpha) + r * alpha;
+                        overlay[j + 1] = overlay[j + 1] * (1 - alpha) + g * alpha;
+                        overlay[j + 2] = overlay[j + 2] * (1 - alpha) + b * alpha;
+                        overlay[j + 3] = Math.min(255, overlay[j + 3] + 100);
+                    }
+                }
+            }
+
+            const overlayCanvas = document.createElement('canvas');
+            overlayCanvas.width = canvas.width;
+            overlayCanvas.height = canvas.height;
+            const overlayCtx = overlayCanvas.getContext('2d');
+            overlayCtx.putImageData(overlayData, 0, 0);
+            ctx.drawImage(overlayCanvas, 0, 0);
+        }
+
+        function renderOutlinesMode(canvas, ctx, origImg) {
+            ctx.drawImage(origImg, 0, 0);
+
+            // Draw outlines for each mask
+            for (const mask of samMaskImages) {
+                const [r, g, b] = mask.color;
+                ctx.strokeStyle = `rgb(${r},${g},${b})`;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+
+                // Find edges by checking neighboring pixels
+                const w = canvas.width;
+                const h = canvas.height;
+                ctx.beginPath();
+
+                for (let y = 1; y < h - 1; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const idx = (y * w + x) * 4;
+                        if (mask.pixels[idx] > 128) {
+                            // Check if edge pixel
+                            const top = mask.pixels[((y-1) * w + x) * 4] > 128;
+                            const bot = mask.pixels[((y+1) * w + x) * 4] > 128;
+                            const left = mask.pixels[(y * w + x-1) * 4] > 128;
+                            const right = mask.pixels[(y * w + x+1) * 4] > 128;
+
+                            if (!top || !bot || !left || !right) {
+                                ctx.rect(x, y, 1, 1);
+                            }
+                        }
+                    }
+                }
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // Add hover interaction
+            let hoveredMask = -1;
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+                const idx = (y * canvas.width + x) * 4;
+
+                let found = -1;
+                for (let i = samMaskImages.length - 1; i >= 0; i--) {
+                    if (samMaskImages[i].pixels[idx] > 128) {
+                        found = i;
+                        break;
+                    }
+                }
+
+                if (found !== hoveredMask) {
+                    hoveredMask = found;
+                    renderOutlinesMode(canvas, ctx, origImg);
+
+                    if (found >= 0) {
+                        const mask = samMaskImages[found];
+                        const [r, g, b] = mask.color;
+
+                        // Highlight hovered mask
+                        ctx.fillStyle = `rgba(${r},${g},${b},0.3)`;
+                        ctx.beginPath();
+                        for (let py = 0; py < canvas.height; py++) {
+                            for (let px = 0; px < canvas.width; px++) {
+                                if (mask.pixels[(py * canvas.width + px) * 4] > 128) {
+                                    ctx.rect(px, py, 1, 1);
+                                }
+                            }
+                        }
+                        ctx.fill();
+
+                        // Show info
+                        const info = document.getElementById('maskInfo');
+                        info.style.display = 'block';
+                        info.style.left = (e.clientX - canvas.getBoundingClientRect().left + 10) + 'px';
+                        info.style.top = (e.clientY - canvas.getBoundingClientRect().top + 10) + 'px';
+                        info.innerHTML = `Mask ${found + 1}<br>Area: ${mask.data.area}<br>Score: ${mask.data.score.toFixed(2)}`;
+                    } else {
+                        document.getElementById('maskInfo').style.display = 'none';
+                    }
+                }
+            };
+            canvas.onmouseleave = () => {
+                document.getElementById('maskInfo').style.display = 'none';
+                hoveredMask = -1;
+                renderOutlinesMode(canvas, ctx, origImg);
+            };
+        }
+
+        function renderCursorMode(canvas, ctx, origImg) {
+            ctx.drawImage(origImg, 0, 0);
+
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+                const idx = (y * canvas.width + x) * 4;
+
+                ctx.drawImage(origImg, 0, 0);
+
+                // Find ALL masks under cursor and draw them
+                const masksUnderCursor = [];
+                for (let i = 0; i < samMaskImages.length; i++) {
+                    if (samMaskImages[i].pixels[idx] > 128) {
+                        masksUnderCursor.push(samMaskImages[i]);
+                    }
+                }
+
+                if (masksUnderCursor.length > 0) {
+                    const overlayData = ctx.createImageData(canvas.width, canvas.height);
+                    const overlay = overlayData.data;
+
+                    for (const mask of masksUnderCursor) {
+                        const [r, g, b] = mask.color;
+                        for (let j = 0; j < mask.pixels.length; j += 4) {
+                            if (mask.pixels[j] > 128) {
+                                const alpha = 0.5;
+                                overlay[j] = overlay[j] * (1 - alpha) + r * alpha;
+                                overlay[j + 1] = overlay[j + 1] * (1 - alpha) + g * alpha;
+                                overlay[j + 2] = overlay[j + 2] * (1 - alpha) + b * alpha;
+                                overlay[j + 3] = Math.min(255, overlay[j + 3] + 120);
+                            }
+                        }
+                    }
+
+                    const overlayCanvas = document.createElement('canvas');
+                    overlayCanvas.width = canvas.width;
+                    overlayCanvas.height = canvas.height;
+                    const overlayCtx = overlayCanvas.getContext('2d');
+                    overlayCtx.putImageData(overlayData, 0, 0);
+                    ctx.drawImage(overlayCanvas, 0, 0);
+
+                    // Show info
+                    const info = document.getElementById('maskInfo');
+                    info.style.display = 'block';
+                    info.style.left = (e.clientX - rect.left + 10) + 'px';
+                    info.style.top = (e.clientY - rect.top + 10) + 'px';
+                    info.innerHTML = `${masksUnderCursor.length} mask(s) under cursor`;
+                } else {
+                    document.getElementById('maskInfo').style.display = 'none';
+                }
+            };
+
+            canvas.onmouseleave = () => {
+                document.getElementById('maskInfo').style.display = 'none';
+                ctx.drawImage(origImg, 0, 0);
+            };
+        }
+
+        async function renderDepthResult(data, totalTime) {
+            const resultsDiv = document.getElementById('results');
+
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>Original</h3>
+                    <div class="canvas-container">
+                        <canvas id="originalCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="result-card">
+                    <h3>Depth Map</h3>
+                    <div class="canvas-container">
+                        <canvas id="depthCanvas"></canvas>
+                        <div class="mask-info" id="depthInfo"></div>
+                    </div>
+                    <div class="result-info">
+                        Processing: ${(data.processing_time_ms/1000).toFixed(1)}s |
+                        Total: ${(totalTime/1000).toFixed(1)}s
+                    </div>
+                    <pre id="surfaceDebugInfo" style="display:none; background:#0a0a15; color:#0f0; padding:10px; margin:10px 0; font-size:11px; max-height:200px; overflow:auto; border-radius:4px; white-space:pre-wrap; user-select:text;"></pre>
+                </div>
+            `;
+
+            const canvas = document.getElementById('depthCanvas');
+            const ctx = canvas.getContext('2d');
+            const originalCanvas = document.getElementById('originalCanvas');
+            const originalCtx = originalCanvas.getContext('2d');
+
+            // Load original image and get pixel data
+            const origImg = new Image();
+            origImg.onload = () => {
+                depthOriginalImage = origImg;
+                // Set up original canvas
+                originalCanvas.width = origImg.width;
+                originalCanvas.height = origImg.height;
+                originalCtx.drawImage(origImg, 0, 0);
+                // Get original image pixel data
+                depthOriginalData = originalCtx.getImageData(0, 0, origImg.width, origImg.height);
+            };
+            origImg.src = `/images/${selectedImage}`;
+
+            // Load and display depth map
+            const depthImg = new Image();
+            depthImg.onload = () => {
+                canvas.width = depthImg.width;
+                canvas.height = depthImg.height;
+
+                // Store depth data
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = depthImg.width;
+                tempCanvas.height = depthImg.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(depthImg, 0, 0);
+                depthData = tempCtx.getImageData(0, 0, depthImg.width, depthImg.height);
+
+                // Initial render
+                renderDepthView();
+            };
+            depthImg.src = `data:image/png;base64,${data.mask.data}`;
+
+            // Shared click handler for both canvases
+            function handleDepthClick(e, targetCanvas) {
+                const rect = targetCanvas.getBoundingClientRect();
+                const scaleX = targetCanvas.width / rect.width;
+                const scaleY = targetCanvas.height / rect.height;
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+                const idx = (y * targetCanvas.width + x) * 4;
+
+                if (!depthData) return;
+
+                const view = document.querySelector('input[name="depthView"]:checked')?.value || 'depth';
+
+                if (view === 'surface') {
+                    const z = depthData.data[idx];
+
+                    // Shift+click = test point that SHOULD be IN (used for surface fitting)
+                    if (e.shiftKey) {
+                        testPointsIn.push({ x, y, z });
+                        console.log(`Added IN point: (${x}, ${y}, ${z})`);
+                        // Recompute surface with the new IN point included
+                        if (surfacePoints.length > 0) {
+                            surfacePlane = computeSurfacePlaneMulti(canvas.width, canvas.height);
+                        }
+                        updateSurfaceDebugInfo();
+                        renderDepthView();
+                        return;
+                    }
+
+                    // Normal click = add reference point (up to 4, then cycle)
+                    // Also RESET test points when adding a new reference point
+                    testPointsIn = [];
+                    testPointsOut = [];
+
+                    if (surfacePoints.length >= 4) {
+                        surfacePoints.shift();  // Remove oldest point
+                    }
+                    surfacePoints.push({ x, y, z });
+
+                    // Recompute plane from all points
+                    surfacePlane = computeSurfacePlaneMulti(canvas.width, canvas.height);
+                    renderDepthView();
+                } else {
+                    const clickedValue = depthData.data[idx];
+                    const currentRange = depthRangeMax - depthRangeMin;
+                    const halfRange = Math.floor(currentRange / 2);
+
+                    // Center range on clicked value
+                    depthRangeMin = Math.max(0, clickedValue - halfRange);
+                    depthRangeMax = Math.min(255, clickedValue + halfRange);
+
+                    // Update slider UI
+                    const minHandle = document.getElementById('rangeMin');
+                    const maxHandle = document.getElementById('rangeMax');
+                    const selected = document.getElementById('rangeSelected');
+                    const minPercent = (depthRangeMin / 255) * 100;
+                    const maxPercent = (depthRangeMax / 255) * 100;
+                    minHandle.style.left = minPercent + '%';
+                    maxHandle.style.left = maxPercent + '%';
+                    selected.style.left = minPercent + '%';
+                    selected.style.width = (maxPercent - minPercent) + '%';
+                    document.getElementById('depthRangeDisplay').textContent = `${depthRangeMin}-${depthRangeMax}`;
+
+                    renderDepthView();
+                }
+            }
+
+            // Click handlers for both canvases
+            canvas.onclick = (e) => handleDepthClick(e, canvas);
+            originalCanvas.onclick = (e) => handleDepthClick(e, originalCanvas);
+
+            // Right-click handler for shift+right-click (should be OUT points)
+            function handleRightClick(e, targetCanvas) {
+                if (!e.shiftKey) return; // Only handle shift+right-click
+                e.preventDefault();
+
+                const view = document.querySelector('input[name="depthView"]:checked')?.value || 'depth';
+                if (view !== 'surface' || !depthData) return;
+
+                const rect = targetCanvas.getBoundingClientRect();
+                const scaleX = targetCanvas.width / rect.width;
+                const scaleY = targetCanvas.height / rect.height;
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+                const idx = (y * targetCanvas.width + x) * 4;
+                const z = depthData.data[idx];
+
+                testPointsOut.push({ x, y, z });
+                console.log(`Added OUT point: (${x}, ${y}, ${z})`);
+                updateSurfaceDebugInfo();
+                renderDepthView();
+            }
+            canvas.oncontextmenu = (e) => { handleRightClick(e, canvas); if (e.shiftKey) return false; };
+            originalCanvas.oncontextmenu = (e) => { handleRightClick(e, originalCanvas); if (e.shiftKey) return false; };
+
+            // Hover to show depth value
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+                const idx = (y * canvas.width + x) * 4;
+
+                if (depthData) {
+                    const depthValue = depthData.data[idx];
+                    const info = document.getElementById('depthInfo');
+                    info.style.display = 'block';
+                    info.style.left = (e.clientX - rect.left + 10) + 'px';
+                    info.style.top = (e.clientY - rect.top + 10) + 'px';
+                    info.textContent = `Depth: ${depthValue}`;
+                }
+            };
+
+            canvas.onmouseleave = () => {
+                document.getElementById('depthInfo').style.display = 'none';
+            };
+
+            // Double-click to reset surface points (both canvases)
+            function handleDblClick(e) {
+                const view = document.querySelector('input[name="depthView"]:checked')?.value;
+                if (view === 'surface') {
+                    e.preventDefault();
+                    surfacePoints = [];
+                    surfacePlane = null;
+                    testPointsIn = [];
+                    testPointsOut = [];
+                    const debugEl = document.getElementById('surfaceDebugInfo');
+                    if (debugEl) debugEl.style.display = 'none';
+                    renderDepthView();
+                }
+            }
+            canvas.ondblclick = handleDblClick;
+            originalCanvas.ondblclick = handleDblClick;
+        }
+
+        function fitBilinearSurface(width, height) {
+            // Fit z = a + b*x + c*y + d*x*y using ONLY the clicked points (exact interpolation)
+            // This guarantees the surface passes through all reference points
+            if (surfacePoints.length < 3) return null;
+
+            const pts = surfacePoints.map(p => ({ x: p.x, y: p.y, z: p.z }));
+            const n = pts.length;
+
+            // Build matrix A and vector B for least squares (or exact if n=4)
+            // z = a + b*x + c*y + d*xy  =>  [1, x, y, xy] * [a, b, c, d]' = z
+            const A = pts.map(p => [1, p.x, p.y, p.x * p.y]);
+            const B = pts.map(p => p.z);
+
+            let coeffs;
+            if (n === 4) {
+                // Exact solution
+                coeffs = solveLinearSystem(A, B);
+            } else {
+                // Least squares: (A'A)^-1 * A'B
+                const AT = [[], [], [], []];
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < n; j++) {
+                        AT[i][j] = A[j][i];
+                    }
+                }
+                // ATA = AT * A (4x4)
+                const ATA = [];
+                for (let i = 0; i < 4; i++) {
+                    ATA[i] = [];
+                    for (let j = 0; j < 4; j++) {
+                        let sum = 0;
+                        for (let k = 0; k < n; k++) sum += AT[i][k] * A[k][j];
+                        ATA[i][j] = sum;
+                    }
+                }
+                // ATB = AT * B (4x1)
+                const ATB = [];
+                for (let i = 0; i < 4; i++) {
+                    let sum = 0;
+                    for (let k = 0; k < n; k++) sum += AT[i][k] * B[k];
+                    ATB[i] = sum;
+                }
+                coeffs = solveLinearSystem(ATA, ATB);
+            }
+
+            if (!coeffs) return null;
+            const [a, b, c, d] = coeffs;
+
+            // Compute residuals at reference points
+            let maxDiff = 0;
+            for (const p of pts) {
+                const expected = a + b*p.x + c*p.y + d*p.x*p.y;
+                maxDiff = Math.max(maxDiff, Math.abs(p.z - expected));
+            }
+
+            // Set a reasonable tolerance (should be near 0 for exact fit)
+            const suggestedTolerance = Math.max(10, Math.round(maxDiff * 2 + 5));
+            document.getElementById('surfaceTolerance').value = suggestedTolerance;
+            document.getElementById('surfaceToleranceDisplay').textContent = suggestedTolerance;
+
+            // Compute gradient (dz/dx, dz/dy) at center of reference points
+            // For z = a + b*x + c*y + d*xy:
+            //   dz/dx = b + d*y
+            //   dz/dy = c + d*x
+            const cx = surfacePoints.reduce((s, p) => s + p.x, 0) / surfacePoints.length;
+            const cy = surfacePoints.reduce((s, p) => s + p.y, 0) / surfacePoints.length;
+            const dzdx = b + d*cy;
+            const dzdy = c + d*cx;
+            const gradientMag = Math.sqrt(dzdx*dzdx + dzdy*dzdy);
+
+            console.log(`\n=== Bilinear Surface (${n} points, exact fit) ===`);
+            console.log(`z = ${a.toFixed(2)} + ${b.toFixed(4)}*x + ${c.toFixed(4)}*y + ${d.toFixed(6)}*xy`);
+            console.log(`Gradient at center (${cx.toFixed(0)}, ${cy.toFixed(0)}): dzdx=${dzdx.toFixed(4)}, dzdy=${dzdy.toFixed(4)}`);
+            console.log(`Max residual at ref points: ${maxDiff.toFixed(4)}`);
+
+            return {
+                type: 'bilinear',
+                a, b, c, d,
+                dzdx, dzdy,  // Include dzdx, dzdy for normal computation
+                depthTransform: 'bilinear',
+                orientation: 'bilinear interpolation',
+                gradientMag
+            };
+        }
+
+        function fitQuadraticSurface(samples, width, height) {
+            // Fit z = a*x² + b*y² + c*xy + d*x + e*y + f
+            // Using least squares with 6 parameters
+            const n = samples.length;
+            if (n < 6) return null;
+
+            // Build normal equations matrix (6x6) and vector (6x1)
+            // Variables: [a, b, c, d, e, f] for [x², y², xy, x, y, 1]
+            let sums = {};
+            const keys = ['x4', 'x2y2', 'x3y', 'x3', 'x2y', 'x2',
+                          'y4', 'xy3', 'xy2', 'y3', 'y2',
+                          'x2y2_2', 'x2y', 'xy2_2', 'xy',
+                          'x', 'y', '1',
+                          'x2z', 'y2z', 'xyz', 'xz', 'yz', 'z'];
+            keys.forEach(k => sums[k] = 0);
+
+            for (const s of samples) {
+                const x = s.x, y = s.y, z = s.z;
+                const x2 = x*x, y2 = y*y, xy = x*y;
+                const x3 = x2*x, y3 = y2*y;
+                const x4 = x2*x2, y4 = y2*y2;
+                const x2y = x2*y, xy2 = x*y2, x2y2 = x2*y2;
+                const x3y = x3*y, xy3 = x*y3;
+
+                sums['x4'] += x4; sums['x2y2'] += x2y2; sums['x3y'] += x3y;
+                sums['x3'] += x3; sums['x2y'] += x2y; sums['x2'] += x2;
+                sums['y4'] += y4; sums['xy3'] += xy3; sums['xy2'] += xy2;
+                sums['y3'] += y3; sums['y2'] += y2;
+                sums['xy'] += xy; sums['x'] += x; sums['y'] += y;
+                sums['x2z'] += x2*z; sums['y2z'] += y2*z; sums['xyz'] += xy*z;
+                sums['xz'] += x*z; sums['yz'] += y*z; sums['z'] += z;
+            }
+
+            // 6x6 matrix for [a, b, c, d, e, f]
+            const A = [
+                [sums['x4'],   sums['x2y2'], sums['x3y'],  sums['x3'],  sums['x2y'], sums['x2']],
+                [sums['x2y2'], sums['y4'],   sums['xy3'],  sums['x2y'], sums['y3'],  sums['y2']],
+                [sums['x3y'],  sums['xy3'],  sums['x2y2'], sums['x2y'], sums['xy2'], sums['xy']],
+                [sums['x3'],   sums['x2y'], sums['x2y'],  sums['x2'],  sums['xy'],  sums['x']],
+                [sums['x2y'],  sums['y3'],   sums['xy2'],  sums['xy'],  sums['y2'],  sums['y']],
+                [sums['x2'],   sums['y2'],   sums['xy'],   sums['x'],   sums['y'],   n]
+            ];
+            const B = [sums['x2z'], sums['y2z'], sums['xyz'], sums['xz'], sums['yz'], sums['z']];
+
+            // Solve using Gaussian elimination with partial pivoting
+            const coeffs = solveLinearSystem(A, B);
+            if (!coeffs) return null;
+
+            const [a, b, c, d, e, f] = coeffs;
+
+            // Compute residuals
+            let sumResidual = 0;
+            for (const s of samples) {
+                const predicted = a*s.x*s.x + b*s.y*s.y + c*s.x*s.y + d*s.x + e*s.y + f;
+                sumResidual += Math.abs(s.zOrig - predicted);
+            }
+            const avgResidual = sumResidual / n;
+            const suggestedTolerance = Math.max(5, Math.min(50, Math.round(avgResidual * 2.5)));
+
+            document.getElementById('surfaceTolerance').value = suggestedTolerance;
+            document.getElementById('surfaceToleranceDisplay').textContent = suggestedTolerance;
+
+            // Compute gradient (dz/dx, dz/dy) at center of reference points
+            // For z = a*x² + b*y² + c*xy + d*x + e*y + f:
+            //   dz/dx = 2*a*x + c*y + d
+            //   dz/dy = 2*b*y + c*x + e
+            const cx = surfacePoints.reduce((s, p) => s + p.x, 0) / surfacePoints.length;
+            const cy = surfacePoints.reduce((s, p) => s + p.y, 0) / surfacePoints.length;
+            const dzdx = 2*a*cx + c*cy + d;
+            const dzdy = 2*b*cy + c*cx + e;
+            const gradientMag = Math.sqrt(dzdx*dzdx + dzdy*dzdy);
+
+            console.log(`\n=== Quadratic Surface (${surfacePoints.length} points) ===`);
+            console.log(`z = ${a.toFixed(6)}*x² + ${b.toFixed(6)}*y² + ${c.toFixed(6)}*xy + ${d.toFixed(4)}*x + ${e.toFixed(4)}*y + ${f.toFixed(2)}`);
+            console.log(`Gradient at center (${cx.toFixed(0)}, ${cy.toFixed(0)}): dzdx=${dzdx.toFixed(4)}, dzdy=${dzdy.toFixed(4)}`);
+            console.log(`Suggested tolerance: ${suggestedTolerance}`);
+
+            return {
+                type: 'quadratic',
+                a, b, c, d, e, f,
+                dzdx, dzdy,  // Gradient at center for normal vector
+                depthTransform: 'quadratic',
+                orientation: 'curved surface',
+                gradientMag
+            };
+        }
+
+        function solveLinearSystem(A, B) {
+            // Gaussian elimination with partial pivoting
+            const n = A.length;
+            const aug = A.map((row, i) => [...row, B[i]]);
+
+            for (let col = 0; col < n; col++) {
+                // Find pivot
+                let maxRow = col;
+                for (let row = col + 1; row < n; row++) {
+                    if (Math.abs(aug[row][col]) > Math.abs(aug[maxRow][col])) {
+                        maxRow = row;
+                    }
+                }
+                [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+
+                if (Math.abs(aug[col][col]) < 1e-10) return null;
+
+                // Eliminate
+                for (let row = col + 1; row < n; row++) {
+                    const factor = aug[row][col] / aug[col][col];
+                    for (let j = col; j <= n; j++) {
+                        aug[row][j] -= factor * aug[col][j];
+                    }
+                }
+            }
+
+            // Back substitution
+            const x = new Array(n);
+            for (let i = n - 1; i >= 0; i--) {
+                x[i] = aug[i][n];
+                for (let j = i + 1; j < n; j++) {
+                    x[i] -= aug[i][j] * x[j];
+                }
+                x[i] /= aug[i][i];
+            }
+            return x;
+        }
+
+        function computeSurfacePlaneMulti(width, height) {
+            if (surfacePoints.length === 0) return null;
+
+            const depthTransform = document.getElementById('depthTransform')?.value || 'linear';
+
+            // Collect samples from 16x16 area around each reference point
+            // Also include shift-clicked IN points for better surface fitting
+            const halfSize = 8;
+            const allSamples = [];
+
+            // Collect from reference points (used for polygon/normals)
+            for (const pt of surfacePoints) {
+                for (let dy = -halfSize; dy < halfSize; dy++) {
+                    for (let dx = -halfSize; dx < halfSize; dx++) {
+                        const px = pt.x + dx;
+                        const py = pt.y + dy;
+                        if (px >= 0 && px < width && py >= 0 && py < height) {
+                            let z = depthData.data[(py * width + px) * 4];
+                            let zTransformed;
+                            if (depthTransform === 'inverse' && z > 0) {
+                                zTransformed = 1.0 / z;
+                            } else if (depthTransform === 'log' && z > 0) {
+                                zTransformed = Math.log(z);
+                            } else if (depthTransform !== 'linear' && depthTransform !== 'quadratic' && z <= 0) {
+                                continue;
+                            } else {
+                                zTransformed = z;
+                            }
+                            allSamples.push({ x: px, y: py, z: zTransformed, zOrig: z });
+                        }
+                    }
+                }
+            }
+
+            // Also collect samples from shift-clicked IN test points (for better surface fitting)
+            // These help the quadratic/curved surfaces fit the interior better
+            for (const pt of testPointsIn) {
+                for (let dy = -halfSize; dy < halfSize; dy++) {
+                    for (let dx = -halfSize; dx < halfSize; dx++) {
+                        const px = pt.x + dx;
+                        const py = pt.y + dy;
+                        if (px >= 0 && px < width && py >= 0 && py < height) {
+                            let z = depthData.data[(py * width + px) * 4];
+                            let zTransformed;
+                            if (depthTransform === 'inverse' && z > 0) {
+                                zTransformed = 1.0 / z;
+                            } else if (depthTransform === 'log' && z > 0) {
+                                zTransformed = Math.log(z);
+                            } else if (depthTransform !== 'linear' && depthTransform !== 'quadratic' && z <= 0) {
+                                continue;
+                            } else {
+                                zTransformed = z;
+                            }
+                            allSamples.push({ x: px, y: py, z: zTransformed, zOrig: z });
+                        }
+                    }
+                }
+            }
+
+            // Quadratic surface fitting: z = a*x² + b*y² + c*xy + d*x + e*y + f
+            if (depthTransform === 'quadratic') {
+                return fitQuadraticSurface(allSamples, width, height);
+            }
+
+            // Bilinear exact interpolation: z = a + b*x + c*y + d*xy (uses only clicked points)
+            if (depthTransform === 'bilinear') {
+                return fitBilinearSurface(width, height);
+            }
+
+            // Fit plane using least squares: f(z) = a*x + b*y + c
+            let sumX = 0, sumY = 0, sumZ = 0;
+            let sumXX = 0, sumYY = 0, sumXY = 0;
+            let sumXZ = 0, sumYZ = 0;
+            const n = allSamples.length;
+
+            for (const s of allSamples) {
+                sumX += s.x;
+                sumY += s.y;
+                sumZ += s.z;
+                sumXX += s.x * s.x;
+                sumYY += s.y * s.y;
+                sumXY += s.x * s.y;
+                sumXZ += s.x * s.z;
+                sumYZ += s.y * s.z;
+            }
+
+            // Solve 3x3 system using Cramer's rule
+            const A = [
+                [sumXX, sumXY, sumX],
+                [sumXY, sumYY, sumY],
+                [sumX,  sumY,  n]
+            ];
+            const B = [sumXZ, sumYZ, sumZ];
+
+            function det3(m) {
+                return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+                     - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+                     + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+            }
+
+            const detA = det3(A);
+            let dzdx = 0, dzdy = 0, c = sumZ / n;
+
+            if (Math.abs(detA) > 0.001) {
+                const Aa = [[B[0], A[0][1], A[0][2]], [B[1], A[1][1], A[1][2]], [B[2], A[2][1], A[2][2]]];
+                const Ab = [[A[0][0], B[0], A[0][2]], [A[1][0], B[1], A[1][2]], [A[2][0], B[2], A[2][2]]];
+                const Ac = [[A[0][0], A[0][1], B[0]], [A[1][0], A[1][1], B[1]], [A[2][0], A[2][1], B[2]]];
+
+                dzdx = det3(Aa) / detA;
+                dzdy = det3(Ab) / detA;
+                c = det3(Ac) / detA;
+            }
+
+            // Compute residuals to suggest initial tolerance (in linear depth space)
+            let sumResidual = 0;
+            for (const s of allSamples) {
+                const predictedFit = dzdx * s.x + dzdy * s.y + c;
+                let predictedLinear;
+                if (depthTransform === 'inverse') {
+                    predictedLinear = 1.0 / predictedFit;
+                } else if (depthTransform === 'log') {
+                    predictedLinear = Math.exp(predictedFit);
+                } else {
+                    predictedLinear = predictedFit;
+                }
+                sumResidual += Math.abs(s.zOrig - predictedLinear);
+            }
+            const avgResidual = sumResidual / n;
+            const suggestedTolerance = Math.max(5, Math.min(50, Math.round(avgResidual * 2.5)));
+
+            // Describe the plane orientation
+            const gradientMag = Math.sqrt(dzdx * dzdx + dzdy * dzdy);
+            let orientation = "flat";
+            if (gradientMag > 0.05) {
+                const angle = Math.atan2(dzdy, dzdx) * 180 / Math.PI;
+                if (angle > -22.5 && angle <= 22.5) orientation = "tilted right (→)";
+                else if (angle > 22.5 && angle <= 67.5) orientation = "tilted down-right (↘)";
+                else if (angle > 67.5 && angle <= 112.5) orientation = "tilted down (↓)";
+                else if (angle > 112.5 && angle <= 157.5) orientation = "tilted down-left (↙)";
+                else if (angle > 157.5 || angle <= -157.5) orientation = "tilted left (←)";
+                else if (angle > -157.5 && angle <= -112.5) orientation = "tilted up-left (↖)";
+                else if (angle > -112.5 && angle <= -67.5) orientation = "tilted up (↑)";
+                else orientation = "tilted up-right (↗)";
+            }
+
+            console.log(`\n=== Surface Plane (${surfacePoints.length} points, ${depthTransform}) ===`);
+            if (depthTransform === 'inverse') {
+                console.log(`Equation: 1/z = ${dzdx.toFixed(8)}*x + ${dzdy.toFixed(8)}*y + ${c.toFixed(6)}`);
+            } else if (depthTransform === 'log') {
+                console.log(`Equation: log(z) = ${dzdx.toFixed(6)}*x + ${dzdy.toFixed(6)}*y + ${c.toFixed(2)}`);
+            } else {
+                console.log(`Equation: z = ${dzdx.toFixed(6)}*x + ${dzdy.toFixed(6)}*y + ${c.toFixed(2)}`);
+            }
+            console.log(`Orientation: ${orientation}, gradient magnitude: ${gradientMag.toFixed(6)}`);
+            console.log(`Suggested tolerance: ${suggestedTolerance}`);
+            console.log(`\nReference points:`);
+            for (let i = 0; i < surfacePoints.length; i++) {
+                const pt = surfacePoints[i];
+                const fitValue = dzdx * pt.x + dzdy * pt.y + c;
+                let expectedZ;
+                if (depthTransform === 'inverse' && pt.z > 0 && fitValue > 0) {
+                    expectedZ = 1.0 / fitValue;
+                } else if (depthTransform === 'log' && pt.z > 0) {
+                    expectedZ = Math.exp(fitValue);
+                } else {
+                    expectedZ = fitValue;
+                }
+                const diff = pt.z - expectedZ;
+                console.log(`  P${i+1}: (${pt.x}, ${pt.y}) z=${pt.z} | expected=${expectedZ.toFixed(2)} | diff=${diff.toFixed(2)}`);
+            }
+
+            // Set the slider to the suggested value
+            const toleranceSlider = document.getElementById('surfaceTolerance');
+            toleranceSlider.value = suggestedTolerance;
+            document.getElementById('surfaceToleranceDisplay').textContent = suggestedTolerance;
+
+            return { dzdx, dzdy, c, orientation, gradientMag, depthTransform };
+        }
+
+        function drawSurfaceVisualization(ctx, w, h, showInfoBox = false) {
+            if (!surfacePlane || surfacePoints.length === 0) return;
+
+            // Get gradient values with fallback to 0
+            const dzdx = surfacePlane.dzdx || 0;
+            const dzdy = surfacePlane.dzdy || 0;
+
+            // Scale factor based on image size (baseline: 1000px for half-size elements)
+            const scale = Math.max(w, h) / 1000;
+            const markerRadius = Math.max(6, Math.round(10 * scale));
+            const dotRadius = Math.max(2, Math.round(3 * scale));
+            const lineWidth = Math.max(1, Math.round(2 * scale));
+            const thinLine = Math.max(1, Math.round(1.5 * scale));
+            const fontSize = Math.max(10, Math.round(12 * scale));
+            const dashSize = Math.max(3, Math.round(5 * scale));
+
+            // Draw reference points with labels
+            const colors = ['#ff0000', '#00ff00', '#0088ff', '#ff00ff'];
+            const labels = getPointLabels();
+
+            for (let i = 0; i < surfacePoints.length; i++) {
+                const pt = surfacePoints[i];
+                const color = colors[i];
+
+                // Draw point marker
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = thinLine;
+
+                // Outer circle
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, markerRadius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Inner dot
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, dotRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Label with shadow
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.fillStyle = '#000';
+                ctx.fillText(labels[i], pt.x + markerRadius + 4, pt.y + fontSize/3);
+                ctx.fillStyle = color;
+                ctx.fillText(labels[i], pt.x + markerRadius + 3, pt.y + fontSize/3 - 1);
+            }
+
+            // Draw lines connecting points if 2+
+            if (surfacePoints.length >= 2) {
+                ctx.strokeStyle = 'rgba(255,255,0,0.7)';
+                ctx.lineWidth = thinLine;
+                ctx.setLineDash([dashSize, dashSize]);
+                ctx.beginPath();
+                ctx.moveTo(surfacePoints[0].x, surfacePoints[0].y);
+                for (let i = 1; i < surfacePoints.length; i++) {
+                    ctx.lineTo(surfacePoints[i].x, surfacePoints[i].y);
+                }
+                if (surfacePoints.length >= 3) {
+                    ctx.lineTo(surfacePoints[0].x, surfacePoints[0].y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Draw surface normal vector from center
+            const cx = surfacePoints.reduce((s, p) => s + p.x, 0) / surfacePoints.length;
+            const cy = surfacePoints.reduce((s, p) => s + p.y, 0) / surfacePoints.length;
+
+            const arrowLen = Math.max(30, 50 * scale);
+            const arrowHead = Math.max(8, 12 * scale);
+
+            if (surfacePlane.gradientMag > 0.001) {
+                const nx = -dzdx / surfacePlane.gradientMag;
+                const ny = -dzdy / surfacePlane.gradientMag;
+
+                const ex = cx + nx * arrowLen;
+                const ey = cy + ny * arrowLen;
+
+                // Debug: log the computed values
+                console.log(`Arrow: center=(${cx.toFixed(0)}, ${cy.toFixed(0)}), end=(${ex.toFixed(0)}, ${ey.toFixed(0)}), nx=${nx.toFixed(3)}, ny=${ny.toFixed(3)}`);
+
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = lineWidth * 1.5;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+
+                const angle = Math.atan2(ny, nx);
+                ctx.beginPath();
+                ctx.moveTo(ex, ey);
+                ctx.lineTo(ex - arrowHead * Math.cos(angle - 0.4), ey - arrowHead * Math.sin(angle - 0.4));
+                ctx.lineTo(ex - arrowHead * Math.cos(angle + 0.4), ey - arrowHead * Math.sin(angle + 0.4));
+                ctx.closePath();
+                ctx.fillStyle = '#00ffff';
+                ctx.fill();
+
+                // Draw center dot
+                ctx.beginPath();
+                ctx.arc(cx, cy, dotRadius * 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Debug label showing direction
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.fillStyle = '#000';
+                ctx.fillText(`nx=${nx.toFixed(2)} ny=${ny.toFixed(2)}`, cx + 5, cy - 10);
+                ctx.fillStyle = '#00ffff';
+                ctx.fillText(`nx=${nx.toFixed(2)} ny=${ny.toFixed(2)}`, cx + 4, cy - 11);
+            } else {
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = lineWidth;
+                ctx.beginPath();
+                ctx.arc(cx, cy, arrowLen * 0.4, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(cx, cy, dotRadius * 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#00ffff';
+                ctx.fill();
+            }
+
+            // Update HTML debug info (only when requested)
+            if (showInfoBox) {
+                updateSurfaceDebugInfo();
+            }
+        }
+
+        function updateSurfaceDebugInfo() {
+            const debugEl = document.getElementById('surfaceDebugInfo');
+            if (!debugEl) return;
+
+            if (!surfacePlane || surfacePoints.length === 0) {
+                debugEl.style.display = 'none';
+                return;
+            }
+
+            debugEl.style.display = 'block';
+            const { depthTransform, orientation } = surfacePlane;
+            const dzdx = surfacePlane.dzdx || 0;
+            const dzdy = surfacePlane.dzdy || 0;
+            const c = surfacePlane.c || 0;
+            const tolerance = parseInt(document.getElementById('surfaceTolerance').value);
+
+            let text = `=== Surface Debug ===\n`;
+            text += `Reference Points: ${surfacePoints.length}/4 (dbl-click to reset)\n`;
+            text += `Transform: ${depthTransform.toUpperCase()}\n\n`;
+
+            if (depthTransform === 'quadratic') {
+                const { a, b, c: cq, d, e, f } = surfacePlane;
+                text += `Surface: z = ${a.toFixed(6)}*x² + ${b.toFixed(6)}*y² + ${cq.toFixed(6)}*xy\n`;
+                text += `            + ${d.toFixed(4)}*x + ${e.toFixed(4)}*y + ${f.toFixed(2)}\n`;
+            } else if (depthTransform === 'bilinear') {
+                const { a, b, c: cb, d } = surfacePlane;
+                text += `Surface: z = ${a.toFixed(2)} + ${b.toFixed(4)}*x + ${cb.toFixed(4)}*y + ${d.toFixed(6)}*xy\n`;
+                text += `(Exact fit through reference points)\n`;
+            } else if (depthTransform === 'inverse') {
+                text += `Plane equation: 1/z = ${dzdx.toFixed(8)} * x + ${dzdy.toFixed(8)} * y + ${c.toFixed(6)}\n`;
+            } else if (depthTransform === 'log') {
+                text += `Plane equation: log(z) = ${dzdx.toFixed(6)} * x + ${dzdy.toFixed(6)} * y + ${c.toFixed(2)}\n`;
+            } else {
+                text += `Plane equation: z = ${dzdx.toFixed(6)} * x + ${dzdy.toFixed(6)} * y + ${c.toFixed(2)}\n`;
+            }
+            text += `Orientation: ${orientation}\n`;
+            text += `Depth tolerance: ${tolerance}\n`;
+
+            // Show gradient info for normal vector
+            text += `\nSurface Gradient (at center):\n`;
+            text += `  dz/dx = ${dzdx.toFixed(6)} (depth change per pixel right)\n`;
+            text += `  dz/dy = ${dzdy.toFixed(6)} (depth change per pixel down)\n`;
+            text += `  |gradient| = ${surfacePlane.gradientMag.toFixed(6)}\n`;
+            text += `  (Depth encoding: 0=near, 255=far)\n`;
+            text += `  Arrow points toward CLOSER direction\n`;
+
+            text += `\nReference Points:\n`;
+
+            for (let i = 0; i < surfacePoints.length; i++) {
+                const pt = surfacePoints[i];
+                let expectedZ, diff;
+
+                if (depthTransform === 'quadratic') {
+                    const { a, b, c: cq, d, e, f } = surfacePlane;
+                    expectedZ = a*pt.x*pt.x + b*pt.y*pt.y + cq*pt.x*pt.y + d*pt.x + e*pt.y + f;
+                    diff = pt.z - expectedZ;
+                } else if (depthTransform === 'bilinear') {
+                    const { a, b, c: cb, d } = surfacePlane;
+                    expectedZ = a + b*pt.x + cb*pt.y + d*pt.x*pt.y;
+                    diff = pt.z - expectedZ;
+                } else {
+                    const fitValue = dzdx * pt.x + dzdy * pt.y + c;
+                    if (depthTransform === 'inverse' && pt.z > 0 && fitValue > 0) {
+                        expectedZ = 1.0 / fitValue;
+                        diff = pt.z - expectedZ;
+                    } else if (depthTransform === 'log' && pt.z > 0) {
+                        expectedZ = Math.exp(fitValue);
+                        diff = pt.z - expectedZ;
+                    } else {
+                        expectedZ = fitValue;
+                        diff = pt.z - expectedZ;
+                    }
+                }
+                const inPlaneTol = Math.abs(diff) <= tolerance;
+                const status = inPlaneTol ? '✓' : '✗';
+
+                text += `  P${i+1}: x=${pt.x}, y=${pt.y}, depth=${pt.z}`;
+                if (depthTransform === 'inverse') {
+                    text += ` (1/z=${(1/pt.z).toFixed(6)})`;
+                }
+                text += `\n`;
+                text += `      expected=${expectedZ.toFixed(2)}, diff=${diff.toFixed(2)} ${status}\n`;
+            }
+
+            // Test points section
+            if (testPointsIn.length > 0 || testPointsOut.length > 0) {
+                text += `\n=== Test Points (shift+click to add) ===\n`;
+                text += `Shift+LeftClick = IN points (used for fitting)\n`;
+                text += `Shift+RightClick = OUT points (for testing)\n`;
+                text += `Normal click resets all test points\n\n`;
+
+                if (testPointsIn.length > 0) {
+                    text += `IN POINTS - used for surface fitting (${testPointsIn.length}):\n`;
+                    for (const pt of testPointsIn) {
+                        text += `  (${pt.x}, ${pt.y}, ${pt.z})\n`;
+                    }
+                }
+                if (testPointsOut.length > 0) {
+                    text += `OUT POINTS - for testing only (${testPointsOut.length}):\n`;
+                    for (const pt of testPointsOut) {
+                        text += `  (${pt.x}, ${pt.y}, ${pt.z})\n`;
+                    }
+                }
+            }
+
+            debugEl.textContent = text;
+        }
+
+        function renderDepthView() {
+            const canvas = document.getElementById('depthCanvas');
+            if (!canvas || !depthData) return;
+
+            const ctx = canvas.getContext('2d');
+            const originalCanvas = document.getElementById('originalCanvas');
+            const originalCtx = originalCanvas ? originalCanvas.getContext('2d') : null;
+            const view = document.querySelector('input[name="depthView"]:checked')?.value || 'depth';
+
+            // Always redraw original canvas with visualization (show vector in ALL modes)
+            if (originalCtx && depthOriginalImage) {
+                originalCtx.drawImage(depthOriginalImage, 0, 0);
+                if (surfacePlane && surfacePoints.length > 0) {
+                    drawSurfaceVisualization(originalCtx, originalCanvas.width, originalCanvas.height, false);
+                }
+            }
+
+            if (view === 'original' && depthOriginalImage) {
+                ctx.drawImage(depthOriginalImage, 0, 0, canvas.width, canvas.height);
+                // Draw surface visualization in original mode too (show vector always)
+                if (surfacePlane && surfacePoints.length > 0) {
+                    drawSurfaceVisualization(ctx, canvas.width, canvas.height, false);
+                }
+            } else if (view === 'selection' && depthOriginalData) {
+                // Draw checkerboard background first
+                drawCheckerboard(ctx, canvas.width, canvas.height);
+
+                // Apply mask with alpha based on depth range
+                const imageData = ctx.createImageData(canvas.width, canvas.height);
+                const pixels = imageData.data;
+
+                for (let i = 0; i < depthData.data.length; i += 4) {
+                    const depthVal = depthData.data[i];
+                    if (depthVal >= depthRangeMin && depthVal <= depthRangeMax) {
+                        pixels[i] = depthOriginalData.data[i];
+                        pixels[i + 1] = depthOriginalData.data[i + 1];
+                        pixels[i + 2] = depthOriginalData.data[i + 2];
+                        pixels[i + 3] = 255;
+                    }
+                }
+
+                // Draw image with alpha onto checkerboard
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.putImageData(imageData, 0, 0);
+                ctx.drawImage(tempCanvas, 0, 0);
+                // Draw surface visualization in selection mode too (show vector always)
+                if (surfacePlane && surfacePoints.length > 0) {
+                    drawSurfaceVisualization(ctx, canvas.width, canvas.height, false);
+                }
+            } else if (view === 'surface' && depthOriginalData) {
+                // Draw checkerboard background
+                drawCheckerboard(ctx, canvas.width, canvas.height);
+
+                if (surfacePlane && surfacePoints.length > 0) {
+                    // Apply surface plane mask
+                    const imageData = ctx.createImageData(canvas.width, canvas.height);
+                    const pixels = imageData.data;
+                    const { depthTransform } = surfacePlane;
+                    const dzdx = surfacePlane.dzdx || 0;
+                    const dzdy = surfacePlane.dzdy || 0;
+                    const c = surfacePlane.c || 0;
+                    const gradientMag = surfacePlane.gradientMag || 0;
+                    const tolerance = parseInt(document.getElementById('surfaceTolerance').value);
+                    const w = canvas.width;
+                    const h = canvas.height;
+
+                    // Polygon constraint
+                    const usePolygonConstraint = document.getElementById('polygonConstraint')?.checked;
+                    const polygon = usePolygonConstraint && surfacePoints.length >= 3 ?
+                        getConvexHull(surfacePoints) : null;
+
+                    // Normal exclusion settings
+                    const useNormalExclusion = document.getElementById('normalExclusion').checked;
+                    const normalToleranceDeg = parseInt(document.getElementById('normalTolerance').value);
+                    const normalToleranceRad = normalToleranceDeg * Math.PI / 180;
+                    const cosThreshold = Math.cos(normalToleranceRad);
+
+                    // Reference normal vector (normalized): (-dzdx, -dzdy, 1) / length
+                    // For comparison we use the gradient components directly
+                    const refLen = Math.sqrt(dzdx * dzdx + dzdy * dzdy + 1);
+                    const refNx = -dzdx / refLen;
+                    const refNy = -dzdy / refLen;
+                    const refNz = 1 / refLen;
+
+                    for (let py = 0; py < h; py++) {
+                        for (let px = 0; px < w; px++) {
+                            const i = (py * w + px) * 4;
+                            const actualZ = depthData.data[i];
+
+                            // Expected depth based on surface equation and transform
+                            let expectedZ, diff;
+
+                            if (depthTransform === 'quadratic') {
+                                // z = a*x² + b*y² + c*xy + d*x + e*y + f
+                                const { a, b, c: cq, d, e, f } = surfacePlane;
+                                expectedZ = a*px*px + b*py*py + cq*px*py + d*px + e*py + f;
+                                diff = Math.abs(actualZ - expectedZ);
+                            } else if (depthTransform === 'bilinear') {
+                                // z = a + b*x + c*y + d*xy
+                                const { a, b, c: cb, d } = surfacePlane;
+                                expectedZ = a + b*px + cb*py + d*px*py;
+                                diff = Math.abs(actualZ - expectedZ);
+                            } else {
+                                const fitValue = dzdx * px + dzdy * py + c;
+
+                                if (depthTransform === 'inverse' && actualZ > 0 && fitValue > 0) {
+                                    expectedZ = 1.0 / fitValue;
+                                    diff = Math.abs(actualZ - expectedZ);
+                                } else if (depthTransform === 'log' && actualZ > 0) {
+                                    expectedZ = Math.exp(fitValue);
+                                    diff = Math.abs(actualZ - expectedZ);
+                                } else {
+                                    expectedZ = fitValue;
+                                    diff = Math.abs(actualZ - expectedZ);
+                                }
+                            }
+
+                            if (diff <= tolerance) {
+                                let include = true;
+
+                                // Polygon constraint check
+                                if (polygon && !pointInPolygon(px, py, polygon)) {
+                                    include = false;
+                                }
+
+                                // Normal exclusion check
+                                if (useNormalExclusion && px > 4 && px < w - 5 && py > 4 && py < h - 5) {
+                                    // Compute local gradient from 9x9 neighborhood (using +/-4 pixels)
+                                    const zL = depthData.data[(py * w + px - 4) * 4];
+                                    const zR = depthData.data[(py * w + px + 4) * 4];
+                                    const zT = depthData.data[((py - 4) * w + px) * 4];
+                                    const zB = depthData.data[((py + 4) * w + px) * 4];
+
+                                    const localDzdx = (zR - zL) / 8;  // Divide by 2*4 = 8
+                                    const localDzdy = (zB - zT) / 8;
+
+                                    // Local normal: (-localDzdx, -localDzdy, 1) normalized
+                                    const localLen = Math.sqrt(localDzdx * localDzdx + localDzdy * localDzdy + 1);
+                                    const localNx = -localDzdx / localLen;
+                                    const localNy = -localDzdy / localLen;
+                                    const localNz = 1 / localLen;
+
+                                    // Dot product = cos(angle between normals)
+                                    const dot = refNx * localNx + refNy * localNy + refNz * localNz;
+
+                                    if (dot < cosThreshold) {
+                                        include = false;
+                                    }
+                                }
+
+                                if (include) {
+                                    pixels[i] = depthOriginalData.data[i];
+                                    pixels[i + 1] = depthOriginalData.data[i + 1];
+                                    pixels[i + 2] = depthOriginalData.data[i + 2];
+                                    pixels[i + 3] = 255;
+                                }
+                            }
+                        }
+                    }
+
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = canvas.width;
+                    tempCanvas.height = canvas.height;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.putImageData(imageData, 0, 0);
+                    ctx.drawImage(tempCanvas, 0, 0);
+
+                    // Draw polygon boundary if enabled
+                    if (polygon && polygon.length >= 3) {
+                        ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
+                        ctx.lineWidth = Math.max(1, canvas.width / 500);
+                        ctx.setLineDash([]);
+                        ctx.beginPath();
+                        ctx.moveTo(polygon[0].x, polygon[0].y);
+                        for (let i = 1; i < polygon.length; i++) {
+                            ctx.lineTo(polygon[i].x, polygon[i].y);
+                        }
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+
+                    // Draw visualization on depth canvas (with info box)
+                    drawSurfaceVisualization(ctx, canvas.width, canvas.height, true);
+                } else {
+                    // Show hint message
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    ctx.fillRect(0, canvas.height/2 - 30, canvas.width, 60);
+                    ctx.fillStyle = '#00d9ff';
+                    ctx.font = '16px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Click on surface to add reference points (up to 4)', canvas.width/2, canvas.height/2 + 6);
+                }
+            } else {
+                // Show depth map
+                ctx.putImageData(depthData, 0, 0);
+                // Draw surface visualization in depth mode too (show vector always)
+                if (surfacePlane && surfacePoints.length > 0) {
+                    drawSurfaceVisualization(ctx, canvas.width, canvas.height, false);
+                }
+            }
+        }
+
+        function pointInPolygon(x, y, polygon) {
+            // Ray casting algorithm
+            if (polygon.length < 3) return true; // Not enough points for polygon
+            let inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i].x, yi = polygon[i].y;
+                const xj = polygon[j].x, yj = polygon[j].y;
+                if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+                    inside = !inside;
+                }
+            }
+            return inside;
+        }
+
+        function getConvexHull(points) {
+            // Graham scan for convex hull
+            if (points.length < 3) return points;
+
+            // Find lowest point
+            let start = 0;
+            for (let i = 1; i < points.length; i++) {
+                if (points[i].y > points[start].y ||
+                    (points[i].y === points[start].y && points[i].x < points[start].x)) {
+                    start = i;
+                }
+            }
+
+            const pivot = points[start];
+            const sorted = points.slice().sort((a, b) => {
+                const angleA = Math.atan2(a.y - pivot.y, a.x - pivot.x);
+                const angleB = Math.atan2(b.y - pivot.y, b.x - pivot.x);
+                return angleA - angleB;
+            });
+
+            const hull = [];
+            for (const p of sorted) {
+                while (hull.length >= 2) {
+                    const a = hull[hull.length - 2];
+                    const b = hull[hull.length - 1];
+                    const cross = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+                    if (cross <= 0) hull.pop();
+                    else break;
+                }
+                hull.push(p);
+            }
+            return hull;
+        }
+
+        function drawCheckerboard(ctx, width, height) {
+            const checkSize = 10;
+            for (let y = 0; y < height; y += checkSize) {
+                for (let x = 0; x < width; x += checkSize) {
+                    const isLight = ((x / checkSize) + (y / checkSize)) % 2 === 0;
+                    ctx.fillStyle = isLight ? '#a0a0a0' : '#606060';
+                    ctx.fillRect(x, y, checkSize, checkSize);
+                }
+            }
+        }
+
+        function getPointLabels() {
+            if (surfacePoints.length === 0) return [];
+            if (surfacePoints.length === 1) return ['P1'];
+
+            // Calculate centroid
+            const cx = surfacePoints.reduce((s, p) => s + p.x, 0) / surfacePoints.length;
+            const cy = surfacePoints.reduce((s, p) => s + p.y, 0) / surfacePoints.length;
+            const cz = surfacePoints.reduce((s, p) => s + p.z, 0) / surfacePoints.length;
+
+            // Label each point based on relative position
+            return surfacePoints.map((pt, i) => {
+                const dx = pt.x - cx;
+                const dy = pt.y - cy;
+                const dz = pt.z - cz;
+
+                // Determine horizontal position
+                let h = dx > 20 ? 'R' : dx < -20 ? 'L' : '';
+                // Determine vertical position (in image space, y increases downward)
+                let v = dy > 20 ? 'Bot' : dy < -20 ? 'Top' : '';
+                // Determine depth position (higher value = closer in depth maps)
+                let d = dz > 10 ? 'Near' : dz < -10 ? 'Far' : '';
+
+                if (!h && !v && !d) return `P${i + 1}`;
+
+                // Combine labels sensibly
+                if (d && (h || v)) {
+                    return d + (v ? '-' + v : '') + (h ? '-' + h : '');
+                }
+                return (v || '') + (v && h ? '-' : '') + (h || '') + (d ? ' ' + d : '') || `P${i + 1}`;
+            });
+        }
+
+        function renderRegularResult(data, totalTime) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>Original</h3>
+                    <img src="/images/${selectedImage}" alt="Original">
+                </div>
+                <div class="result-card">
+                    <h3>Mask: ${selectedModel}</h3>
+                    <div class="checkerboard">
+                        <canvas id="resultCanvas"></canvas>
+                    </div>
+                    <div class="result-info">
+                        Processing: ${data.processing_time_ms.toFixed(0)}ms |
+                        Total: ${totalTime}ms |
+                        Size: ${data.mask.width}x${data.mask.height}
+                    </div>
+                </div>
+            `;
+
+            const canvas = document.getElementById('resultCanvas');
+            const ctx = canvas.getContext('2d');
+            const origImg = new Image();
+            const maskImg = new Image();
+            let loaded = 0;
+
+            function tryComposite() {
+                loaded++;
+                if (loaded < 2) return;
+
+                canvas.width = origImg.width;
+                canvas.height = origImg.height;
+                ctx.drawImage(origImg, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+
+                const maskCanvas = document.createElement('canvas');
+                maskCanvas.width = canvas.width;
+                maskCanvas.height = canvas.height;
+                const maskCtx = maskCanvas.getContext('2d');
+                maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height);
+                const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+                for (let i = 0; i < pixels.length; i += 4) {
+                    pixels[i + 3] = maskData[i];
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            origImg.onload = tryComposite;
+            maskImg.onload = tryComposite;
+            origImg.src = `/images/${selectedImage}`;
+            maskImg.src = `data:image/png;base64,${data.mask.data}`;
+        }
+
+        function renderCaptionResult(data, totalTime) {
+            const resultsDiv = document.getElementById('results');
+            const caption = data.caption || data.text || 'No caption generated';
+
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>Original</h3>
+                    <img src="/images/${selectedImage}" alt="Original">
+                </div>
+                <div class="result-card">
+                    <h3>Caption: ${selectedModel}</h3>
+                    <div style="padding: 20px; background: #0f3460; min-height: 200px;">
+                        <p style="font-size: 16px; line-height: 1.6; color: #fff; margin: 0;">${caption}</p>
+                    </div>
+                    <div class="result-info">
+                        Processing: ${(data.processing_time_ms/1000).toFixed(1)}s |
+                        Total: ${(totalTime/1000).toFixed(1)}s
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDetectResult(data, totalTime) {
+            const resultsDiv = document.getElementById('results');
+            const detections = data.detections || [];
+
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>Original</h3>
+                    <img src="/images/${selectedImage}" alt="Original">
+                </div>
+                <div class="result-card">
+                    <h3>Detections: ${detections.length} objects</h3>
+                    <div class="canvas-container">
+                        <canvas id="detectCanvas"></canvas>
+                    </div>
+                    <div class="result-info">
+                        Processing: ${(data.processing_time_ms/1000).toFixed(1)}s |
+                        Total: ${(totalTime/1000).toFixed(1)}s
+                    </div>
+                </div>
+            `;
+
+            // Draw detections on canvas
+            const canvas = document.getElementById('detectCanvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // Draw bounding boxes
+                for (const det of detections) {
+                    const { bbox, class: cls, confidence } = det;
+                    const [x, y, w, h] = [bbox.x, bbox.y, bbox.width, bbox.height];
+
+                    // Random color based on class name
+                    const hue = (cls.charCodeAt(0) * 37) % 360;
+                    ctx.strokeStyle = `hsl(${hue}, 70%, 50%)`;
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x, y, w, h);
+
+                    // Label
+                    const label = `${cls} ${(confidence * 100).toFixed(0)}%`;
+                    ctx.font = '14px sans-serif';
+                    const textWidth = ctx.measureText(label).width;
+                    ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+                    ctx.fillRect(x, y - 20, textWidth + 8, 20);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(label, x + 4, y - 5);
+                }
+            };
+            img.src = `/images/${selectedImage}`;
+        }
+
+        let imageList = [];
+
+        async function loadImages() {
+            const grid = document.getElementById('imageGrid');
+            try {
+                const resp = await fetch('/images');
+                const data = await resp.json();
+                imageList = data.images;
+                renderImageGrid();
+            } catch (e) {
+                grid.innerHTML = '<div style="color:#ff6b6b;padding:10px;">Failed to load</div>';
+            }
+        }
+
+        function renderImageGrid() {
+            const grid = document.getElementById('imageGrid');
+            grid.innerHTML = '';
+            imageList.forEach(img => {
+                const item = document.createElement('div');
+                item.className = 'image-grid-item' + (img === selectedImage ? ' selected' : '');
+                item.innerHTML = `<img src="/images/${img}" alt="${img}" title="${img}">`;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    selectImage(img);
+                    closeImagePicker();
+                };
+                grid.appendChild(item);
+            });
+        }
+
+        function toggleImagePicker() {
+            const grid = document.getElementById('imageGrid');
+            const btn = document.getElementById('imagePickerBtn');
+            const isOpen = grid.classList.contains('open');
+            if (isOpen) {
+                closeImagePicker();
+            } else {
+                grid.classList.add('open');
+                btn.classList.add('active');
+            }
+        }
+
+        function closeImagePicker() {
+            document.getElementById('imageGrid').classList.remove('open');
+            document.getElementById('imagePickerBtn').classList.remove('active');
+        }
+
+        function updateImagePickerBtn() {
+            const btn = document.getElementById('imagePickerBtn');
+            const textSpan = document.getElementById('imagePickerText');
+            if (selectedImage) {
+                const shortName = selectedImage.length > 20 ? selectedImage.slice(0, 17) + '...' : selectedImage;
+                btn.innerHTML = `<img src="/images/${selectedImage}" alt=""><span>${shortName}</span><span class="arrow">▼</span>`;
+            } else {
+                btn.innerHTML = `<span>Select image...</span><span class="arrow">▼</span>`;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('runBtn').onclick = runInference;
+        document.getElementById('modelSelect').onchange = (e) => selectModel(e.target.value);
+        document.getElementById('imagePickerBtn').onclick = toggleImagePicker;
+
+        // Close picker when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.image-picker')) {
+                closeImagePicker();
+            }
+        });
+
+        // Re-render SAM when mode changes
+        document.querySelectorAll('input[name="samMode"]').forEach(radio => {
+            radio.onchange = () => {
+                if (samMasksData && selectedModel && selectedModel.startsWith('sam')) {
+                    renderSamResult(samMasksData, 0);
+                }
+            };
+        });
+
+        // Re-render depth when view changes
+        document.querySelectorAll('input[name="depthView"]').forEach(radio => {
+            radio.onchange = () => {
+                const newView = document.querySelector('input[name="depthView"]:checked')?.value;
+                // Show/hide surface tolerance slider
+                document.getElementById('surfaceToleranceGroup').style.display =
+                    newView === 'surface' ? 'inline' : 'none';
+                // Show range slider only for selection mode
+                document.getElementById('depthRangeSlider').style.display =
+                    newView === 'selection' ? 'block' : 'none';
+                document.getElementById('depthRangeDisplay').style.display =
+                    newView === 'selection' ? 'inline' : 'none';
+                // Clear surface state when switching away from surface mode
+                if (newView !== 'surface') {
+                    surfacePoints = [];
+                    surfacePlane = null;
+                    const debugEl = document.getElementById('surfaceDebugInfo');
+                    if (debugEl) debugEl.style.display = 'none';
+                }
+                if (depthData && selectedModel && selectedModel.startsWith('depth')) {
+                    renderDepthView();
+                }
+            };
+        });
+
+        // Surface tolerance slider
+        document.getElementById('surfaceTolerance').oninput = (e) => {
+            document.getElementById('surfaceToleranceDisplay').textContent = e.target.value;
+            if (surfacePlane && depthData) {
+                renderDepthView();
+                updateSurfaceDebugInfo();
+            }
+        };
+
+        // Polygon constraint checkbox
+        document.getElementById('polygonConstraint').onchange = () => {
+            if (surfacePlane && depthData) {
+                renderDepthView();
+            }
+        };
+
+        // Normal exclusion checkbox
+        document.getElementById('normalExclusion').onchange = (e) => {
+            document.getElementById('normalToleranceGroup').style.display =
+                e.target.checked ? 'inline' : 'none';
+            if (surfacePlane && depthData) {
+                renderDepthView();
+            }
+        };
+
+        // Normal tolerance slider
+        document.getElementById('normalTolerance').oninput = (e) => {
+            document.getElementById('normalToleranceDisplay').textContent = e.target.value + '°';
+            if (surfacePlane && depthData) {
+                renderDepthView();
+            }
+        };
+
+        // Depth transform select - requires recomputing the plane
+        document.getElementById('depthTransform').onchange = () => {
+            if (surfacePoints.length > 0 && depthData) {
+                const canvas = document.getElementById('depthCanvas');
+                surfacePlane = computeSurfacePlaneMulti(canvas.width, canvas.height);
+                renderDepthView();
+            }
+        };
+
+        // Custom dual range slider
+        function initRangeSlider() {
+            const slider = document.getElementById('depthRangeSlider');
+            const minHandle = document.getElementById('rangeMin');
+            const maxHandle = document.getElementById('rangeMax');
+            const selected = document.getElementById('rangeSelected');
+
+            function updateSliderUI() {
+                const minPercent = (depthRangeMin / 255) * 100;
+                const maxPercent = (depthRangeMax / 255) * 100;
+                minHandle.style.left = minPercent + '%';
+                maxHandle.style.left = maxPercent + '%';
+                selected.style.left = minPercent + '%';
+                selected.style.width = (maxPercent - minPercent) + '%';
+                document.getElementById('depthRangeDisplay').textContent = `${depthRangeMin}-${depthRangeMax}`;
+            }
+
+            function handleDrag(handle, isMin) {
+                return (e) => {
+                    e.preventDefault();
+                    const rect = slider.getBoundingClientRect();
+
+                    const onMove = (e) => {
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        let percent = (clientX - rect.left) / rect.width;
+                        percent = Math.max(0, Math.min(1, percent));
+                        const value = Math.round(percent * 255);
+
+                        if (isMin) {
+                            depthRangeMin = Math.min(value, depthRangeMax - 1);
+                        } else {
+                            depthRangeMax = Math.max(value, depthRangeMin + 1);
+                        }
+                        updateSliderUI();
+                        if (depthData && selectedModel && selectedModel.startsWith('depth')) {
+                            renderDepthView();
+                        }
+                    };
+
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        document.removeEventListener('touchmove', onMove);
+                        document.removeEventListener('touchend', onUp);
+                    };
+
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                    document.addEventListener('touchmove', onMove);
+                    document.addEventListener('touchend', onUp);
+                };
+            }
+
+            minHandle.addEventListener('mousedown', handleDrag(minHandle, true));
+            minHandle.addEventListener('touchstart', handleDrag(minHandle, true));
+            maxHandle.addEventListener('mousedown', handleDrag(maxHandle, false));
+            maxHandle.addEventListener('touchstart', handleDrag(maxHandle, false));
+
+            updateSliderUI();
+        }
+        initRangeSlider();
+
+        // Restore selections from cookies
+        const savedModel = getCookie('modelstag_model');
+        const savedImage = getCookie('modelstag_image');
+
+        loadImages().then(() => {
+            if (savedImage) {
+                selectedImage = savedImage;
+                updateImagePickerBtn();
+                updateResultsPreview();
+            }
+            updateRunButton();
+        });
+
+        loadModels().then(() => {
+            if (savedModel && models[savedModel]) {
+                selectedModel = savedModel;
+                document.getElementById('modelSelect').value = savedModel;
+                document.getElementById('samModesGroup').style.display = savedModel && savedModel.startsWith('sam') ? 'flex' : 'none';
+                document.getElementById('depthControlsGroup').style.display = savedModel && savedModel.startsWith('depth') ? 'flex' : 'none';
+                updateRunButton();
+            }
+        });
+
+        // ========== CAMERA FUNCTIONALITY ==========
+        let cameraStream = null;
+        let cameraBlob = null;
+        let isLiveMode = false;
+        let liveInterval = null;
+        let selectedDeviceId = null;
+        let availableCameras = [];
+
+        const cameraBtn = document.getElementById('cameraBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const liveIndicator = document.getElementById('liveIndicator');
+        const cameraSelect = document.getElementById('cameraSelect');
+
+        cameraBtn.addEventListener('click', openCamera);
+        cameraSelect.addEventListener('change', onCameraSelectChange);
+
+        async function enumerateCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                availableCameras = devices.filter(d => d.kind === 'videoinput');
+
+                // Debug: log all detected cameras
+                console.log('Detected cameras:', availableCameras.length);
+                availableCameras.forEach((c, i) => {
+                    console.log(`  Camera ${i}: "${c.label}" (id: ${c.deviceId.substring(0, 20)}...)`);
+                });
+
+                cameraSelect.innerHTML = '';
+                if (availableCameras.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No cameras found';
+                    cameraSelect.appendChild(option);
+                } else {
+                    availableCameras.forEach((camera, idx) => {
+                        const option = document.createElement('option');
+                        option.value = camera.deviceId;
+                        // Use label if available, otherwise generic name
+                        option.textContent = camera.label || `Camera ${idx + 1}`;
+                        cameraSelect.appendChild(option);
+                    });
+                }
+
+                // Select first non-virtual camera if possible
+                const realCamera = availableCameras.find(c =>
+                    c.label &&
+                    !c.label.toLowerCase().includes('obs') &&
+                    !c.label.toLowerCase().includes('virtual') &&
+                    !c.label.toLowerCase().includes('snap')
+                );
+                if (realCamera) {
+                    console.log('Auto-selected real camera:', realCamera.label);
+                    selectedDeviceId = realCamera.deviceId;
+                    cameraSelect.value = realCamera.deviceId;
+                } else if (availableCameras.length > 0) {
+                    console.log('No non-virtual camera found, using first:', availableCameras[0].label);
+                    selectedDeviceId = availableCameras[0].deviceId;
+                }
+
+                return availableCameras;
+            } catch (err) {
+                console.error('Error enumerating cameras:', err);
+                return [];
+            }
+        }
+
+        async function onCameraSelectChange() {
+            selectedDeviceId = cameraSelect.value;
+            if (cameraStream) {
+                await startCameraStream();
+            }
+        }
+
+        async function openCamera() {
+            // Check if camera API is available
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Camera API not available. Make sure you are using HTTPS (https://localhost:8443)');
+                return;
+            }
+
+            // First request permission before opening modal
+            try {
+                // Request camera permission (needed to get camera labels)
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true
+                });
+                // Permission granted - stop this test stream
+                stream.getTracks().forEach(track => track.stop());
+
+                // Enumerate cameras now that we have permission
+                await enumerateCameras();
+
+                // Now open modal and start proper stream
+                cameraModal.classList.add('open');
+                await startCameraStream();
+            } catch (err) {
+                console.error('Camera error:', err);
+                if (err.name === 'NotAllowedError') {
+                    alert('Camera permission denied. Please allow camera access in your browser settings.');
+                } else if (err.name === 'NotFoundError') {
+                    alert('No camera found on this device.');
+                } else if (err.name === 'NotReadableError') {
+                    alert('Camera is already in use by another application.');
+                } else if (err.name === 'SecurityError') {
+                    alert('Camera access requires HTTPS. Please use https://localhost:8443');
+                } else {
+                    alert('Camera error: ' + err.message);
+                }
+            }
+        }
+
+        async function startCameraStream() {
+            // Stop existing stream if any
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+
+            const constraints = {
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+
+            // Use specific device if selected
+            if (selectedDeviceId) {
+                constraints.video.deviceId = { exact: selectedDeviceId };
+            }
+
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraVideo.srcObject = cameraStream;
+                await cameraVideo.play();
+            } catch (err) {
+                console.error('Stream error:', err);
+                closeCamera();
+                throw err;
+            }
+        }
+
+        function closeCamera() {
+            // Stop live mode if active
+            stopLiveMode();
+
+            // Stop camera stream
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            cameraVideo.srcObject = null;
+            cameraModal.classList.remove('open');
+            cameraBtn.classList.remove('active');
+        }
+
+        function capturePhoto() {
+            // Set canvas size to video size
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+
+            // Draw video frame to canvas
+            const ctx = cameraCanvas.getContext('2d');
+            ctx.drawImage(cameraVideo, 0, 0);
+
+            // Convert to blob
+            cameraCanvas.toBlob(async (blob) => {
+                cameraBlob = blob;
+
+                // Create object URL for preview
+                const imageUrl = URL.createObjectURL(blob);
+
+                // Update UI to show captured image
+                selectedImage = null; // Clear file-based selection
+                cameraBtn.classList.add('active');
+
+                // Update the image picker button to show camera icon
+                const btn = document.getElementById('imagePickerBtn');
+                btn.innerHTML = `<span>📷</span><span>Camera capture</span><span class="arrow">▼</span>`;
+
+                updateRunButton();
+                updateResultsPreview();
+
+                // Close camera modal (unless live mode)
+                if (!isLiveMode) {
+                    closeCamera();
+                }
+            }, 'image/jpeg', 0.9);
+        }
+
+        async function captureAndProcess() {
+            // Capture frame
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            const ctx = cameraCanvas.getContext('2d');
+            ctx.drawImage(cameraVideo, 0, 0);
+
+            // Convert to blob and process
+            return new Promise((resolve) => {
+                cameraCanvas.toBlob(async (blob) => {
+                    cameraBlob = blob;
+                    await runInferenceWithBlob(blob);
+                    resolve();
+                }, 'image/jpeg', 0.85);
+            });
+        }
+
+        function toggleLiveMode(enabled) {
+            isLiveMode = enabled;
+
+            if (isLiveMode) {
+                cameraBtn.classList.add('live');
+                liveIndicator.classList.add('active');
+                startLiveMode();
+            } else {
+                cameraBtn.classList.remove('live');
+                liveIndicator.classList.remove('active');
+                stopLiveMode();
+            }
+        }
+
+        async function startLiveMode() {
+            if (!selectedModel) {
+                alert('Please select a model first for live mode');
+                document.getElementById('liveModeToggle').checked = false;
+                isLiveMode = false;
+                return;
+            }
+
+            // Process frames continuously
+            const processFrame = async () => {
+                if (!isLiveMode || !cameraStream) return;
+
+                await captureAndProcess();
+
+                // Schedule next frame (adjust interval based on model speed)
+                if (isLiveMode) {
+                    liveInterval = setTimeout(processFrame, 100); // ~10 FPS max
+                }
+            };
+
+            processFrame();
+        }
+
+        function stopLiveMode() {
+            isLiveMode = false;
+            if (liveInterval) {
+                clearTimeout(liveInterval);
+                liveInterval = null;
+            }
+            cameraBtn.classList.remove('live');
+            liveIndicator.classList.remove('active');
+        }
+
+        async function runInferenceWithBlob(blob) {
+            if (!selectedModel) return;
+
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', blob, 'camera.jpg');
+
+                // Determine endpoint based on model type
+                let endpoint = `/inference/${selectedModel}`;
+                const isCaption = selectedModel.startsWith('caption');
+                const isDetect = selectedModel.startsWith('detect');
+                const isPose = selectedModel.startsWith('pose');
+                const isHand = selectedModel.startsWith('hand');
+
+                if (isCaption) {
+                    endpoint = `/inference/${selectedModel}/caption`;
+                } else if (isDetect) {
+                    endpoint = `/inference/${selectedModel}/detect`;
+                } else if (isPose) {
+                    endpoint = `/inference/${selectedModel}/pose`;
+                } else if (isHand) {
+                    endpoint = `/inference/${selectedModel}/hands`;
+                }
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || 'Inference failed');
+                }
+
+                // Display result based on model type
+                if (isPose) {
+                    renderPoseResult(result, blob);
+                } else if (isHand) {
+                    renderHandResult(result, blob);
+                } else if (isCaption) {
+                    renderCaptionResult(result);
+                } else if (isDetect) {
+                    renderDetectResult(result, blob);
+                } else {
+                    // Default mask display for other models
+                    renderMaskResult(result, blob);
+                }
+
+            } catch (err) {
+                console.error('Inference error:', err);
+                if (!isLiveMode) {
+                    alert('Error: ' + err.message);
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Run Inference';
+            }
+        }
+
+        function renderPoseResult(result, blob) {
+            const imageUrl = URL.createObjectURL(blob);
+            const resultsDiv = document.getElementById('results');
+
+            resultsDiv.innerHTML = `
+                <div class="result-panel">
+                    <h3>Camera Input</h3>
+                    <div class="result-image">
+                        <img src="${imageUrl}" alt="Camera" id="poseOriginal">
+                        <canvas id="poseOverlay" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+                    </div>
+                </div>
+                <div class="result-panel">
+                    <h3>Pose Detection</h3>
+                    <div class="result-info">
+                        <p><strong>Poses found:</strong> ${result.count}</p>
+                        <p><strong>Processing:</strong> ${result.processing_time_ms?.toFixed(1) || 0}ms</p>
+                        ${result.poses?.map((p, i) => `<p>Pose ${i+1}: ${p.keypoints?.length || 0} keypoints, score: ${(p.score || 0).toFixed(2)}</p>`).join('') || ''}
+                    </div>
+                </div>
+            `;
+
+            // Draw pose overlay
+            const img = document.getElementById('poseOriginal');
+            img.onload = () => {
+                const canvas = document.getElementById('poseOverlay');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+
+                // Draw keypoints and skeleton for each pose
+                const colors = ['#00ff88', '#ff6b6b', '#00d9ff', '#ffd700', '#ff69b4'];
+                result.poses?.forEach((pose, poseIdx) => {
+                    const color = colors[poseIdx % colors.length];
+                    const keypoints = pose.keypoints || [];
+
+                    // Draw skeleton connections
+                    const skeleton = [
+                        [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // torso + legs
+                        [11, 23], [12, 24], [23, 24], [23, 25], [24, 26], [25, 27], [26, 28], // hips + legs
+                        [0, 1], [0, 4], [1, 2], [2, 3], [4, 5], [5, 6] // face
+                    ];
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    skeleton.forEach(([i, j]) => {
+                        const kp1 = keypoints[i];
+                        const kp2 = keypoints[j];
+                        if (kp1 && kp2 && (kp1.confidence || 0) > 0.3 && (kp2.confidence || 0) > 0.3) {
+                            const scaleX = img.width / img.naturalWidth;
+                            const scaleY = img.height / img.naturalHeight;
+                            ctx.beginPath();
+                            ctx.moveTo(kp1.x * scaleX, kp1.y * scaleY);
+                            ctx.lineTo(kp2.x * scaleX, kp2.y * scaleY);
+                            ctx.stroke();
+                        }
+                    });
+
+                    // Draw keypoints
+                    ctx.fillStyle = color;
+                    keypoints.forEach(kp => {
+                        if ((kp.confidence || 0) > 0.3) {
+                            const scaleX = img.width / img.naturalWidth;
+                            const scaleY = img.height / img.naturalHeight;
+                            ctx.beginPath();
+                            ctx.arc(kp.x * scaleX, kp.y * scaleY, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    });
+                });
+            };
+        }
+
+        function renderHandResult(result, blob) {
+            const imageUrl = URL.createObjectURL(blob);
+            const resultsDiv = document.getElementById('results');
+
+            resultsDiv.innerHTML = `
+                <div class="result-panel">
+                    <h3>Camera Input</h3>
+                    <div class="result-image">
+                        <img src="${imageUrl}" alt="Camera" id="handOriginal">
+                        <canvas id="handOverlay" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+                    </div>
+                </div>
+                <div class="result-panel">
+                    <h3>Hand Detection</h3>
+                    <div class="result-info">
+                        <p><strong>Hands found:</strong> ${result.count}</p>
+                        <p><strong>Processing:</strong> ${result.processing_time_ms?.toFixed(1) || 0}ms</p>
+                        ${result.hands?.map((h, i) => `<p>Hand ${i+1}: ${h.handedness}, ${h.landmarks?.length || 0} landmarks</p>`).join('') || ''}
+                    </div>
+                </div>
+            `;
+
+            // Draw hand overlay
+            const img = document.getElementById('handOriginal');
+            img.onload = () => {
+                const canvas = document.getElementById('handOverlay');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+
+                const colors = { left: '#00ff88', right: '#ff6b6b', unknown: '#00d9ff' };
+                const skeleton = result.skeleton || [
+                    [0,1],[1,2],[2,3],[3,4], // thumb
+                    [0,5],[5,6],[6,7],[7,8], // index
+                    [0,9],[9,10],[10,11],[11,12], // middle
+                    [0,13],[13,14],[14,15],[15,16], // ring
+                    [0,17],[17,18],[18,19],[19,20], // pinky
+                    [5,9],[9,13],[13,17] // palm
+                ];
+
+                result.hands?.forEach(hand => {
+                    const color = colors[hand.handedness] || colors.unknown;
+                    const landmarks = hand.landmarks || [];
+                    const scaleX = img.width / img.naturalWidth;
+                    const scaleY = img.height / img.naturalHeight;
+
+                    // Draw skeleton
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    skeleton.forEach(([i, j]) => {
+                        const lm1 = landmarks[i];
+                        const lm2 = landmarks[j];
+                        if (lm1 && lm2) {
+                            ctx.beginPath();
+                            ctx.moveTo(lm1.x * scaleX, lm1.y * scaleY);
+                            ctx.lineTo(lm2.x * scaleX, lm2.y * scaleY);
+                            ctx.stroke();
+                        }
+                    });
+
+                    // Draw landmarks
+                    ctx.fillStyle = color;
+                    landmarks.forEach(lm => {
+                        ctx.beginPath();
+                        ctx.arc(lm.x * scaleX, lm.y * scaleY, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                });
+            };
+        }
+
+        function renderMaskResult(result, blob) {
+            const imageUrl = URL.createObjectURL(blob);
+            const resultsDiv = document.getElementById('results');
+
+            if (result.mask) {
+                resultsDiv.innerHTML = `
+                    <div class="result-panel">
+                        <h3>Camera Input</h3>
+                        <div class="result-image">
+                            <img src="${imageUrl}" alt="Camera">
+                        </div>
+                    </div>
+                    <div class="result-panel">
+                        <h3>Result Mask</h3>
+                        <div class="result-image">
+                            <img src="data:image/png;base64,${result.mask.data}" alt="Mask">
+                        </div>
+                        <div class="result-info">
+                            <p><strong>Processing:</strong> ${result.processing_time_ms?.toFixed(1) || 0}ms</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="result-panel">
+                        <h3>Camera Input</h3>
+                        <div class="result-image">
+                            <img src="${imageUrl}" alt="Camera">
+                        </div>
+                    </div>
+                    <div class="result-panel">
+                        <h3>Result</h3>
+                        <div class="result-info">
+                            <p><strong>Processing:</strong> ${result.processing_time_ms?.toFixed(1) || 0}ms</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Override runInference to handle camera blob
+        const originalUpdateRunButton = updateRunButton;
+        updateRunButton = function() {
+            const btn = document.getElementById('runBtn');
+            btn.disabled = !selectedModel || (!selectedImage && !cameraBlob);
+        };
+
+        // Modify the run button click to handle camera captures
+        document.getElementById('runBtn').addEventListener('click', async function(e) {
+            if (cameraBlob && !selectedImage) {
+                e.stopImmediatePropagation();
+                await runInferenceWithBlob(cameraBlob);
+            }
+        }, true);
+
+    </script>
+
+    <!-- Camera Modal -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="camera-container">
+            <video class="camera-video" id="cameraVideo" playsinline autoplay muted></video>
+            <canvas class="camera-canvas" id="cameraCanvas"></canvas>
+        </div>
+        <div class="camera-controls">
+            <select id="cameraSelect" style="padding:8px 12px; background:#333; color:#fff; border:1px solid #555; border-radius:5px; font-size:14px; min-width:200px;">
+                <option value="">Loading cameras...</option>
+            </select>
+            <button class="camera-capture-btn" onclick="capturePhoto()" title="Capture"></button>
+            <button class="camera-close-btn" onclick="closeCamera()">Close</button>
+        </div>
+        <div class="live-toggle">
+            <input type="checkbox" id="liveModeToggle" onchange="toggleLiveMode(this.checked)">
+            <label for="liveModeToggle">Live Mode (continuous processing)</label>
+        </div>
+    </div>
+</body>
+</html>
